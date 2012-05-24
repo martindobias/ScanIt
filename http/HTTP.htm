@@ -1,0 +1,203 @@
+<html>
+<head><title>HTTP: Embedded HTTP server</title></head>
+<body>
+<h2>HTTP.dll: Embedded HTTP server</h2>
+<p>The HTTP assembly contains the classes to run a simple HTTP server. Requires Sockets.dll.</p>
+
+<p class="byline">Namespace: RedCorona.Net</p>
+<ul>
+<li><a href="#HttpServer">HttpServer</a> class
+<li><a href="#HttpRequest">HttpRequest</a> class
+<li><a href="#HttpResponse">HttpResponse</a> class
+<li><a href="#IHttpHandler">IHttpHandler</a> interface
+<li><a href="#Session">Session</a> class
+<li><a href="#SubstitutingFileHandler">SubstitutingFileHandler</a> class
+</ul>
+
+<hr>
+
+<h3><a name="ByteBuilder">HttpServer class</a></h3>
+<p>This class encapsulates a HTTP server, and manages sessions, header and query string parsing and processing of requests and responses.</p>
+
+<p><B>Properties:</b></p>
+<dl>
+<dt><b>public Hashtable Hostmap</b> (read only); Generic equivalent type: Hashtable&lt;string,string&gt;</dt>
+<dd>A mapping between hostnames and home folders.</dd>
+
+<dt><b>public ArrayList Handlers</b> (read only); Generic equivalent type: List&lt;IHttpHandler&gt;</dt>
+<dd>The list of request handlers currently attached to this server. You should only add instances of IHttpHandler to this list, and you should not clear the list. It should always contain at least one handler which is guaranteed to process every request, which it does on initialisation.</dd>
+
+<dt><b>public Server Server</b> (read only)</dt>
+<dd>The underlying <a href="Sockets.htm#Server">Sockets server</a>. It is recommended that you do not send any material through the Server directly as it may interfere with the HTTP protocol, but you may choose to hook events for monitoring purposes.</dd>
+
+<dt><b>public int SessionTimeout</b></dt>
+<dd>The time, in seconds, that a session will persist between requests. The default is 600 (10 minutes).</dd>
+</dl>
+
+<p><b>Constructors:</b></p>
+<dl>
+<dt><b>public HttpServer(Server s)</b></dt>
+<dd>Creates a new HttpServer, which will begin processing connections made to the Server s. The server should not be using encryption.</dd>
+</dl>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>public string GetFilename(HttpRequest req)</b></dt>
+<dd>Retrieves the file name that matches the document requested in the request. If the host of the request is in Hostmap, that folder is used, otherwise the default folder (webhome) is used.</dd>
+
+<dt><b>protected virtual bool Process(ClientInfo ci, HttpRequest req)</b></dt>
+<dd>Provides the default processing for a request, which is to proceed through all entries in Handlers (from the latest to the earliest) asking each handler if it can process the request.</dd>
+
+<dt><b>public Session RequestSession(HttpRequest req)</b></dt>
+<dd>Requests that a session be allocated for this request, which will be retained for all subsequent requests from the same user until the session times out.</dd>
+
+</dl>
+
+<hr>
+
+<h3><a name="HttpRequest">HttpRequest class</a></h3>
+<p>This class encapsulates the request that the user made. It is effectively a 'reference struct', containing only data.</p>
+
+<p><b>Fields:</b></p>
+<dl>
+<dt><b>public string Method, Url, Page, HttpVersion, QueryString</b></dt>
+<dd>These fields correspond to the first line of the HTTP header which the user sends:
+<br><tt>GET /members/info.html?user=17 HTTP/1.1</tt>
+<br>In this case Method would be 'GET', Url would be '/members/info.html?user=17', Page would be '/members/info.html', QueryString would be 'user=17' and HttpVersion would be '1.1'. The Query field is a better way to access the query in most cases.</dd>
+
+<dt><b>public string Host</b></dt>
+<dd>The Host entry in the HTTP header; which server the user placed in the URL.</dd>
+
+<dt><b>public string Content</b></dt>
+<dd>The body, if any, of the request. In the case of a POST submission from a form, this is parsed into the Query.</dd>
+
+<dt><b>public string HeaderText</b></dt>
+<dd>The entire text that makes up the HTTP header.</dd>
+
+<dt><b>public Hashtable Cookies</b></dt>
+<dd>Any cookies which were passed by the user's browser.</dd>
+
+<dt><b>public Hashtable Header</b></dt>
+<dd>The fields which were included in the HTTP header, keyed on the word before the colon in each case.</dd>
+
+<dt><b>public Hashtable Query</b></dt>
+<dd>If a query string of the form 'name1=value1&name2=value2&...' was included via the URL and/or POST content, it will be parsed into this map, keyed on the name.</dd>
+
+<dt><b>public bool GotHeader</b></dt>
+<dd>Whether the header has yet been completely read. This should always be true in a request handler.</dd>
+
+<dt><b>public IPAddress From</b></dt>
+<dd>The source of the request.</dd>
+
+<dt><b>public <a href="#Session">Session</a> Session</b></dt>
+<dd>The session associated with this user, if one has been requested.</dd>
+
+<dt><b>public int ContentLength, BytesRead</b></dt>
+<dd>The declared length of the content, and the number of bytes read. These two values should be the same in a request handler.</dd>
+</dl>
+
+<hr>
+
+<h3><a name="HttpResponse">HttpResponse class</a></h3>
+<p>This class defines the response to be sent to the user. Like a request, a response is mostly data which is stored directly in fields, which your application should set.</p>
+
+<p><b>Fields:</b></p>
+<dl>
+<dt><b>public int ReturnCode</b></dt>
+<dd>The HTTP return code that will be sent to the client. The default is 200 (OK); you will need to set this field if there is a problem, typically to 4xx (error with the request) or 5xx (server problem)</dd>
+
+<dt><b>public Hashtable Header</b></dt>
+<dd>The extra fields which you wish to be included in the HTTP header, beyond those specified each time.</dd>
+
+<dt><b>public byte[] RawContent
+<br>public string Content</b></dt>
+<dd>The content of the response. If you are sending binary data, set RawContent; the bytes you specify will be sent with no encoding. If you are sending text, set Content; the text will be sent with an encoding of utf-8.</dd>
+
+<dt><b>public string Url</b></dt>
+<dd>The address used to obtain this response. By default this is the same as the Url in the HttpRequest used to request a page.</dd>
+</dl>
+
+<p><b>Constructor:</b></p>
+<dl>
+<dt><b>public HttpResponse()
+<br>public HttpResponse(int code, string content)</b></dt>
+<dd>Creates a new response. The default code is 200, and the default content is null. You will not need to call the constructor if you are creating a request handler, as a new instance of HttpResponse is provided for you in the argument to Process.</dd>
+</dl>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>public void MakeRedirect(string newurl)</b></dt>
+<dd>Makes this response into a redirection (HTTP 303) to the specified other page.</dd>
+</dl>
+
+<hr>
+
+<h3><a name="IHttpHandler">IHttpHandler interface</a></h3>
+<p>This interface defines a request handler, which is used to create a response when a request is received.</p>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>bool Process(HttpServer server, HttpRequest request, HttpResponse response)</b></dt>
+<dd>Process a request. Your class should assign values to the fields in response, and should use the fields in request to determine what action to take. If you have handled the request (whether successfully or producing an error), you should return true.</dd>
+
+</dl>
+
+<hr>
+
+<h3><a name="Session">Session class</a></h3>
+<p>This class provides a container for state information to be kept with a user.</p>
+
+<p><b>Properties:</b></p>
+<dl>
+<dt><b>public string ID</b> (read only)</dt>
+<dd>A unique string which can be used to identify this session.</dd>
+
+<dt><b>public DateTime LastTouched</b> (read only)</dt>
+<dd>The time at which this session was last touched.</dd>
+
+<dt><b>public IPAddress User</b> (read only)</dt>
+<dd>The IP address for which this session is valid. (Sessions are only valid from their source IP to prevent session hijacking.)</dd>
+
+<dt><b>public object this[object key]</b></dt>
+<dd>Saves or retrieves arbitrary data that is to be stored while this session is active.</dd>
+
+</dl>
+
+<p><b>Constructor:</b></p>
+<dl>
+<dt><b>public Session(IPAddress user)</b></dt>
+<dd>Creates a new session for a particular user. Within a request handler, you should use <a href="#HttpServer">HttpServer</a>.RequestSession instead of creating a session manually.</dd>
+</dl>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>public void Touch()</b></dt>
+<dd>Updates the time at which this session was last active to now. Touch is automatically called if the user makes a HTTP request, and when you place data into the session. You can use Touch to keep a particular session from timing out even when inactive.</dd>
+</dl>
+
+<hr>
+
+<h3><a name="SubstitutingFileReader">SubstitutingFileReader class</a></h3>
+<p>This class defines a default implementation of the IHttpHandler interface, which reads files from disk and optionally substitutes pseudotags of the form &lt;%tag&gt; with dynamic content.</p>
+
+<p><b>Fields:</b></p>
+<dl>
+<dt><b>public static Hashtable MimeTypes</b>; Generic equivalent type: Hashtable&lt;string, string&gt;</dt>
+<dd>The mapping of file extensions to MIME types, as used for the ContentType HTTP header.</dd>
+</dl>
+
+<p><b>Properties:</b></p>
+<dl>
+<dt><b>public bool Substitute</b></dt>
+<dd>Whether or not to perform pseudotag processing.</dd>
+</dl>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>public virtual bool Process(HttpServer server, HttpRequest request, HttpResponse response)</b></dt>
+<dd>Processes a request, by reading the file from disk and performing tag substitutions if the associated MIME type is of type text/xxx. You would override this method if you wished to perform authentication, session management or postback handlers for certain URLs.</dd>
+
+<dt><b>public virtual string GetValue(HttpRequest req, string tag)</b></dt>
+<dd>Get the replacement for a particular tag. You need to override this method to produce meaningful substitutions.</dd>
+</dl>
+</body>

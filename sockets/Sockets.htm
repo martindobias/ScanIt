@@ -1,0 +1,314 @@
+<html>
+<head><title>Sockets: TCP Utilities</title></head>
+<body>
+<h2>Sockets.dll: TCP Utilities</h2>
+<p>The Sockets assembly contains several utilities for event-based communication via TCP/IP.</p>
+
+<p class="byline">Namespace: RedCorona.Net</p>
+<ul>
+<li><a href="#ByteBuilder">ByteBuilder</a> class
+<li><a href="#ClientInfo">ClientInfo</a> class
+<li><a href="#Parameter">Parameter</a> structure
+<li><a href="#Server">Server</a> class
+<li><a href="#Sockets">Sockets</a> class
+<li><a href="#SocksProxy">SocksProxy</a> structure
+<li><a href="#enums">Enumerations</a>, <a href="#valuestructs">Value Structures</a>, <a href="#exceptions">Exceptions</a> and <a href="#delegates">Delegates</a>
+</ul>
+
+<p>The Sockets assembly also contains a copy of the basic encryption classes SimpleEncryptor and SimpleDecryptor, which implement the algorithm documented <a href="http://www.codeproject.com/KB/recipes/streamencryption.aspx">here</a>.</p>
+<hr>
+
+<h3><a name="ByteBuilder">ByteBuilder class</a></h3>
+<p>This class lets you build up byte arrays by parts in a similar way to the StringBuilder class. It also has methods for dealing with parameters, which are used for messaged communication.</p>
+
+<p><B>Properties:</b></p>
+<dl>
+<dt><b>public int Length</b> (read only)</dt>
+<dd>How many bytes are currently stored.</dd>
+
+<dt><b>public byte this[int i]</b> (read only)</dt>
+<dd>Reads the byte at the specified index.</dd>
+</dl>
+
+<p><b>Constructors:</b></p>
+<dl>
+<dt><b>public ByteBuilder()<br>
+public ByteBuilder(int packsize)</b></dt>
+<dd>Creates a new empty ByteBuilder. <i>packsize</i> is the number of blocks (individual byte arrays) which can be added before the data is all packed into one array, and defaults to 10.</dd>
+
+<dt><b>public ByteBuilder(byte[] data)</b></dt>
+<dd>Creates a ByteBuilder prefilled with data. This version of the constructor is designed for reading data; if you want to add more data later, you should call one of the other constructors and then call Add() with the data.</dd>
+</dl>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>public void Add(byte[] moredata)<br>
+public void Add(byte[] moredata, int from, int len)</b></dt>
+<dd>Add all or part of a byte array to the data.</dd>
+
+<dt><b>public void AddParameter(<a href="#Parameter">Parameter</a> param)<br>
+public void AddParameter(byte[] content, byte Type)</b></dt>
+<dd>Add a parameter to the data.</dd>
+
+<dt><b>public void Clear()</b></dt>
+<dd>Clear all the data stored in this instance.</dd>
+
+<dt><b>public static String FormatParameter(<a href="#Parameter">Parameter</a> p)</b></dt>
+<dd>Produces a textual representation of the parameter, as long as its type is one of the  predefined values in <a href="#valuestructs">ParameterType</a>.</dd>
+
+<dt><b>public <a href="#Parameter">Parameter</a> GetParameter(ref int index)</b></dt>
+<dd>Read a parameter starting at the byte <i>index</i>, which is updated to the location just after the end of this parameter (which will be the start of the next one, if you are passing multiple parameters).</dd>
+
+<dt><b>public byte[] Read(int from, int len)</b></dt>
+<dd>Read a portion of the stored data.</dd>
+</dl>
+
+<hr>
+
+<h3><a name="ClientInfo">ClientInfo class</a></h3>
+<p>This class provides event-based communication with a TCP socket, and also message collating functions that make sure you get the entire message in one event. (TCP is allowed to split a message into multiple packets, which must arrive in order but don't have to arrive together.)</p>
+
+<p><b>Properties:</b></p>
+<dl>
+<dt><b>public <a href="#delegates">ConnectionClosed</a> OnClose<br>
+public <a href="#delegates">ConnectionRead</a> OnRead<br>
+public <a href="#delegates">ConnectionReadBytes</a> OnReadBytes<br>
+public <a href="#delegates">ConnectionReadMessage</a> OnReadMessage</br>
+public <a href="#delegates">ConnectionReadPartialMessage</a> OnReadPartialMessage</br>
+public <a href="#delegates">ConnectionNotify</a> OnReady</br>
+</b></dt>
+<dd>Event handlers for the connection. OnReady is used with encrypted sockets to notify your application that key exchange is complete, and you may send data. OnRead is used when a text message (terminated by Delimiter) is received. In messaged mode, OnReadMessage is used when a complete message is received, and OnPartialMessage when bytes are read that make up part of a message. OnReadBytes is used whenever bytes are received, including messaging protocol bytes but excluding encryption protocol bytes. OnClose is used when a connection is closed or lost.</dd>
+
+<dt><b>public bool Closed</b> (read only)</dt>
+<dd>Whether the socket has been closed.</dd>
+
+<dt><b>public object Data</b></dt>
+<dd>Allows you to attach user-defined data to this client.</dd>
+
+<dt><b>public string Delimiter</b></dt>
+<dd>The character used as the end marker for text messages.</dd>
+
+<dt><b>public <a href="#enums">ClientDirection</a> Direction</b> (read only)</dt>
+<dd>The direction in which data may travel on this connection.</dd>
+
+<dt><b><a name="ClientInfo_EncryptionType">public <a href="#enums">EncryptionType</a> EncryptionType</b></a></dt>
+<dd>Which encryption method is used on the socket. You may only set this value if key exchange has not begun. If the encryption type is <i>ServerKey</i>, the server sends a symmetric key immediately upon connection (which is visible to a sniffer; low security). If the encryption type is <i>ServerRSAClientKey</i>, the server sends an RSA public key on connection, and the client responds with a symmetric key, encrypted with the RSA key (high security). If it is <i>EncryptionType.None</i>, no encryption is performed.</dd>
+
+<dt><b>public bool EncryptionReady</b> (read only)</dt>
+<dd>Whether the socket has completed key exchange and is ready to trasnmit information.</dd>
+
+<dt><b>public ICryptoTransform Encryptor<br>
+public ICryptoTransform Decryptor</b> (read only)</dt>
+<dd>The cryptographic instances used for encrypting and decrypting information.</dd>
+
+<dt><b>public int ID</b> (read only)</dt>
+<dd>A number used to identify this connection. It is kept for the lifetime of the ClientInfo, and unless you manually reset the NextID property it should be unique over the lifetime of your application. The ID is only valid locally (i.e. within your application); the other end of the connection will have a different ID, even if it is using a ClientInfo to represent it.</dd>
+
+<dt><b>public <a href="#enums">MessageType</a> MessageType</b></dt>
+<dd>How the incoming data is to be collated into messages. If the type is <i>EndMarker</i>, the data is assumed to be text and OnRead is called with the string up to (but not including) the delimiter. If it is <i>Length</i> or <i>CodeAndLength</i>, OnReadMessage is called with the binary data (not including the length specifier). If it is <i>Unmessaged</i>, neither method is called and you must use OnReadBytes (which is not auto-collating).</dd>
+
+<dt><b>public static int NextID</b></dt>
+<dd>The ID which will be assigned to the next socket. It auto-increments every time a new connection is opened, but you can reset it if you are expecting particular values.</dd>
+
+<dt><b>public <a href="#Server">Server</a> Server</b> (read only)</dt>
+<dd>The server of which this connection is a member, or <i>null</i> if this is a client socket.</dd>
+
+<dt><b>public Socket Socket</b> (read only)</dt>
+<dd>The underlying System.Net.Sockets.Socket object.</dd>
+</dl>
+
+<p><b>Constructors:</b></p>
+<dl>
+<dt><b>public ClientInfo(Socket cl, bool StartNow)<br>
+public ClientInfo(Socket cl, <a href="#delegates">ConnectionRead</a> read, <a href="#delegates">ConnectionReadBytes</a> readevt, <a href="#enums">ClientDirection</a> d, bool StartNow)<br>
+public ClientInfo(Socket cl, <a href="#delegates">ConnectionRead</a> read, <a href="#delegates">ConnectionReadBytes</a> readevt, <a href="#enums">ClientDirection</a> d, bool StartNow, <a href="#enums">EncryptionType</a> encryptionType)</b></dt>
+<dd>Creates a new ClientInfo structure over the Socket <i>cl</i>, which should already be connected as a streaming TCP socket (see the Framework documentation, or use the methods of the <a href="#Sockets">Sockets</a> class). Setting ClientDirection has no effect on the way the connection is handled, but may allow you to handle it differently in your application. The <i>StartNow</i> parameter specifies whether to begin receiving straight away (and defaults to <I>true</i>); if you set it to <i>false</i> you must call BeginReceive() to accept data. If the delegates are not set they will be null. The encryption type will be None if it is not specified.</dd>
+</dl>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>public void BeginReceive()</b></dt>
+<dd>Start waiting for data. You should only call this once, and only if you have called the constructor with <i>StartNow</i> set to <i>false</i>.</dd>
+
+<dt><b>public void Close()</b></dt>
+<dd>Close the connection. Calling this method when the connection is already closed has no effect.</dd>
+
+<dt><b>public static int GetInt(byte[] ba, int from, int len)<br>
+public static int[] GetIntArray(byte[] ba)</br>
+public static uint[] GetUintArray(byte[] ba)</b></dt>
+<dd>Get numerical data out of a byte stream. These methods are the inverse of IntToBytes(), IntArrayToBytes(), UintArrayToBytes(). For the array method, numbers are always four bytes; for GetInt you can specify how many bytes (1-4) are used.</dd>
+
+<dt><b>public static byte[] GetLengthEncodedVector(byte[] from)</b></dt>
+<dd>Adds a byte to the start of the vector indicating how long it is. Used internally for key exchange, but may be useful to you for other purposes.</dd>
+
+<dt><b>public static byte[] IntToBytes(int val)<br>
+public static byte[] IntArrayToBytes(int[] val)</b></dt>
+<dd>Convert numerical data into bytes for transfer down the socket.</dd>
+
+<dt><b>public static void LogBytes(byte[] buf, int len)</b></dt>
+<dd>Writes the bytes to the console in a meaningful way.</dd>
+
+<dt><b>public bool MessageWaiting()</b></dt>
+<dd>Asks whether an end-marker type text message is waiting. If this method returns <i>true</i>, call Read() to read the message. It is recommended that you assign a value to OnRead and do not use MessageWaiting().</dd>
+
+<dt><b>public String Read()</b></dt>
+<dd>Read a message. If no message is currently available, it will return a zero-length string. It is recommended that you assign a value to OnRead and do not call Read() directly.</dd>
+
+<dt><b>public String Send(String text)<br>
+public String Send(byte[] ba)<br>
+public String Send(byte[] ba, int length)</b></dt>
+<dd>Send data to the socket. Text will be sent as UTF8.</dd>
+
+<dt><b>public void SendMessage(uint code, byte[] bytes)<br>
+public void SendMessage(uint code, byte[] bytes, byte paramType)<br>
+public void SendMessage(uint code, byte[] bytes, byte paramType, int len)</b></dt>
+<dd>Send a message to the socket. The other end of the connection should be represented by another ClientInfo (or another program which recognises the message format). <i>paramType</i> defaults to <a href="#valuestructs">ParameterType</a>.Unparameterised (0); other values will add the parameter specifier to your byte string. (See the <a href="sockets_htu.htm#params">How to Use</a> file for how to use parameters.)</dd>
+
+<dt><b>public static byte[] UintToBytes(uint val)<br>
+public static byte[] UintArrayToBytes(uint[] val)</b></dt>
+<dd>Convert unsigned numerical data into bytes for transfer down the socket.</dd>
+</dl>
+
+<hr>
+
+<h3><a name="Parameter">Parameter structure</a></h3>
+<p>This structure defines a parameter for messaged communication over TCP/IP.</p>
+
+<p><b>Fields:</b></p>
+<dl>
+<dt><b>public byte Type</b></dt>
+<dd>The type of the parameter. You can specify one of the types in <A href="#valuestructs">ParameterType</a> or define your own types. If you define your own, you should start from 255 (0xFF) so as not to cause problems when more types are added to this library.</dd>
+
+<dt><b>public byte[] content</b></dt>
+<dd>The byte representation of the data.</dd>
+</dl>
+
+<p><b>Constructor:</b></p>
+<dl>
+<dt><b>public Parameter(byte[] content, byte type)</b></dt>
+<dd>Creates a new parameter.</dd>
+</dl>
+
+<hr>
+
+<h3><a name="Server">Server class</a></h3>
+<p>This class encapsulates a TCP/IP server. It maintains a collection of all the clients which are currently connected to it, and throws events whenever a new client connects or (through the instances of <a href="#ClientInfo">ClientInfo</a> it produces) one receives some data.</p>
+
+<p><b>Properties:</b></p>
+<dl>
+<dt><b>public ClientInfo this[int id]</b> (read only)</dt>
+<dd>Allows you to index the client list by the <a href="#ClientInfo">ClientInfo</a>.ID property.</dd>
+
+<dt><B>public event <A href="#delegates">ClientEvent</a> Connect, ClientReady</b></dt>
+<dd>Fired when a new client connects to the server. You should assign event handlers to the <a href="#ClientInfo">ClientInfo</a> you are passed in the callback to respond to data sent to you. The new client is assigned a new ID which is kept for the lifetime of the socket and is usually unique. (See <a href="#ClientInfo">ClientInfo</a>.ID.) If you are using encrypted sockets, you should attach to ClientReady instead, which is fired when the client has completed key exchange and is ready to send data.</dd>
+
+<dt><b>public IEnumerable Clients</b> (read only)</dt>
+<dd>The list of all clients currently connected to this server.</dd>
+
+<dt><b>public <a href="#enums">EncryptionType</a> DefaultEncryptionType</b></dt>
+<dd>Sets the default encryption type to be used for new connections. See <a href="#ClientInfo_EncryptionType">ClientInfo.EncryptionType</a>.</dd>
+
+<dt><b>public int Port</b> (read only)</dt>
+<Dd>Lets you find out what port number the server is bound to.</dd>
+
+<dt><b>public Socket ServerSocket</b> (read only)</dt>
+<dd>The System.Net.Sockets.Socket object which underlies this server.</dd>
+</dl>
+
+<p><b>Constructors:</b></p>
+<dl>
+<dt><b>public Server(int port)<br>
+public Server(int port, <A href="#delegates">ClientConnect</a> connDel)</b></dt>
+<dd>Creates a new server on the local machine on the given port. The delegate is attached to the Connect event, if it is specified. The server begins listening immediately.</dd>
+</dl>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>public void Broadcast(byte[] bytes)</b></dt>
+<dd>Sends the bytes to every client connected to the server.</dd>
+
+<dt><b>public void BroadcastMessage(uint code, byte[] bytes, byte paramType)</b></dt>
+<dd>Sends a message to every client. See <a href="#ClientInfo">ClientInfo</a>.SendMessage and the <a href="sockets_htu.htm#messages">How to Use</a> file for more about messaged communication.</dd>
+
+<dt><b>public void Close()</b></dt>
+<dd>Closes the server and any connections currently live.</dd>
+
+<dt><b>protected virtual byte[] GetSymmetricKey()</b></dt>
+<dd>Gets a symmetric key to use with a connection where the server defines the key.</dd>
+</dl>
+
+<hr>
+
+<h3><a name="Sockets">Sockets class</a></h3>
+<p>This class provides utilities to help with connecting to the Internet from your program.</p>
+
+<p><b>Properties:</b></p>
+<dl>
+<dt><b>public static <a href="#SocksProxy">SocksProxy</a> SocksProxy</b></dt>
+<dd>Lets you specify a SOCKS proxy server through which connection requests will be sent.</dd>
+
+<dt><b>public static bool UseSocks</b> = <i>false</i></dt>
+<dd>Specifies whether connections will go through a SOCKS proxy by default.</dd>
+</dl>
+
+<p><b>Methods:</b></p>
+<dl>
+<dt><b>public static Socket CreateTCPSocket(String address, int port)<br>
+public static Socket CreateTCPSocket(String address, int port, bool useSocks, <a href="#SocksProxy">SocksProxy</a> proxy)</b></dt>
+<dd>Looks up the address and attempts to make a connection to it on the given port. If the last two parameters are not provided, the values of the UseSocks and SocksProxy properties are used instead.</dd>
+
+<dt><b>public static Socket ConnectToSocksProxy(IPAddress proxyIP, int proxyPort, String destAddress, int destPort, string userName, string password)</b></dt>
+<dd>Asks the proxy server to open a connection. This is automatically called by CreateTCPSocket if you ask for a proxy server. This function is mostly taken from <a href="http://www.thecodeproject.com/csharp/ZaSocks5Proxy.asp">http://www.thecodeproject.com/csharp/ZaSocks5Proxy.asp</a>.
+</dl>
+
+<hr>
+
+<h3><a name="SocksProxy">SocksProxy structure</a></h3>
+<p>Defines a SOCKS proxy.</p>
+
+<p><b>Fields:</b></p>
+<dl>
+<dt><b>public IPAddress host<br>
+public ushort port</b></dt>
+<dd>The location of the proxy server. SOCKS proxies are typically on port 1080.</dd>
+
+<dt><b>public string username, password</b></dt>
+<dd>Authentication information which may be required by the proxy before allowing you to connect to another site.</dd>
+</dl>
+
+<p><b>Constructor:</b></p>
+<dl>
+<dt><b>public SocksProxy(String hostname, ushort port, String username, String password)</b></dt>
+<dd>Initialises the structure with the four parameters.</dd>
+</dl>
+
+<hr>
+
+<h3><a name="delegates">Delegates</a></h3>
+<p>public delegate bool ClientEvent(<a href="#Server">Server</a> serv, <a href="#ClientInfo">ClientInfo</a> new_client);<br>
+public delegate void ConnectionRead(<a href="#ClientInfo">ClientInfo ci</a>, String text)<br>
+public delegate void ConnectionClosed(<a href="#ClientInfo">ClientInfo ci</a>)<br>
+public delegate void ConnectionNotify(<a href="#ClientInfo">ClientInfo ci</a>)<br>
+public delegate void ConnectionReadBytes(<a href="#ClientInfo">ClientInfo ci</a>, byte[] bytes, int len)<br>
+public delegate void ConnectionReadPartialMessage(<a href="#ClientInfo">ClientInfo ci</a>, uint code, byte[] bytes, int start, int read, int sofar, int totallength)<br>
+public delegate void ConnectionReadMessage(<a href="#ClientInfo">ClientInfo ci</a>, uint code, byte[] bytes, int len)</p>
+
+<h3><a name="enums">Enumerations</a></h3>
+<p>public enum ClientDirection {In, Out, Left, Right, Both}<br>
+public enum MessageType {Unmessaged, EndMarker, Length, CodeAndLength}<br>
+public enum EncryptionType {None, ServerKey, ServerRSAClientKey}</p>
+
+<h3><a name="exceptions">Exceptions</a></h3>
+<p>public class <B>ConnectionException</b>: Exception {<br>
+&nbsp;&nbsp;public ConnectionException(string message) : base(message) {}<br>
+}</p>
+
+<h3><a name="valuestructs">Value Structures</a></h3>
+<p>public struct <b>ParameterType</b> {<br>
+&nbsp;&nbsp;public const byte Unparameterised = 0;<br>
+&nbsp;&nbsp;public const byte Int = 1;<br>
+&nbsp;&nbsp;public const byte Uint = 2;<br>
+&nbsp;&nbsp;public const byte String = 3;<br>
+&nbsp;&nbsp;public const byte Byte = 4;<br>
+}</p>
+</body>
