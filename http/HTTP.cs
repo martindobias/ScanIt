@@ -440,7 +440,7 @@ namespace RedCorona.Net {
 		string RegexMatch(Match m){
 			try {
 				return GetValue(req, m.Groups["tag"].Value);
-			} catch(Exception e) {
+			} catch(Exception) {
 				return "<span class=error>Error substituting "+m.Groups["tag"].Value+"</span>";
 			}
 		}
