@@ -35,16 +35,17 @@
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.serverStatusText = new System.Windows.Forms.ToolStripStatusLabel();
             this.trayIcon = new System.Windows.Forms.NotifyIcon(this.components);
-            this.sourceComboBox = new System.Windows.Forms.ComboBox();
-            this.sourceLabel = new System.Windows.Forms.Label();
             this.trayContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.startServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.sourceComboBox = new System.Windows.Forms.ComboBox();
+            this.sourceLabel = new System.Windows.Forms.Label();
             this.startServerButton = new System.Windows.Forms.Button();
             this.quitButton = new System.Windows.Forms.Button();
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.portUpDown = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
+            this.scanButton = new System.Windows.Forms.Button();
             this.statusStrip.SuspendLayout();
             this.trayContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
@@ -101,23 +102,6 @@
             this.trayIcon.Click += new System.EventHandler(this.trayIcon_Click);
             this.trayIcon.DoubleClick += new System.EventHandler(this.trayIcon_DoubleClick);
             // 
-            // sourceComboBox
-            // 
-            this.sourceComboBox.FormattingEnabled = true;
-            this.sourceComboBox.Location = new System.Drawing.Point(15, 25);
-            this.sourceComboBox.Name = "sourceComboBox";
-            this.sourceComboBox.Size = new System.Drawing.Size(185, 21);
-            this.sourceComboBox.TabIndex = 3;
-            // 
-            // sourceLabel
-            // 
-            this.sourceLabel.AutoSize = true;
-            this.sourceLabel.Location = new System.Drawing.Point(12, 9);
-            this.sourceLabel.Name = "sourceLabel";
-            this.sourceLabel.Size = new System.Drawing.Size(78, 13);
-            this.sourceLabel.TabIndex = 4;
-            this.sourceLabel.Text = "TWAIN source";
-            // 
             // trayContextMenuStrip
             // 
             this.trayContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -139,6 +123,23 @@
             this.quitToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
             this.quitToolStripMenuItem.Text = "Quit";
             this.quitToolStripMenuItem.Click += new System.EventHandler(this.quitToolStripMenuItem_Click);
+            // 
+            // sourceComboBox
+            // 
+            this.sourceComboBox.FormattingEnabled = true;
+            this.sourceComboBox.Location = new System.Drawing.Point(15, 25);
+            this.sourceComboBox.Name = "sourceComboBox";
+            this.sourceComboBox.Size = new System.Drawing.Size(185, 21);
+            this.sourceComboBox.TabIndex = 3;
+            // 
+            // sourceLabel
+            // 
+            this.sourceLabel.AutoSize = true;
+            this.sourceLabel.Location = new System.Drawing.Point(12, 9);
+            this.sourceLabel.Name = "sourceLabel";
+            this.sourceLabel.Size = new System.Drawing.Size(78, 13);
+            this.sourceLabel.TabIndex = 4;
+            this.sourceLabel.Text = "TWAIN source";
             // 
             // startServerButton
             // 
@@ -201,11 +202,22 @@
             this.label1.TabIndex = 10;
             this.label1.Text = "port";
             // 
+            // scanButton
+            // 
+            this.scanButton.Location = new System.Drawing.Point(412, 175);
+            this.scanButton.Name = "scanButton";
+            this.scanButton.Size = new System.Drawing.Size(75, 23);
+            this.scanButton.TabIndex = 11;
+            this.scanButton.Text = "Test scan";
+            this.scanButton.UseVisualStyleBackColor = true;
+            this.scanButton.Click += new System.EventHandler(this.scanButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(508, 262);
+            this.Controls.Add(this.scanButton);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.portUpDown);
@@ -250,6 +262,7 @@
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.NumericUpDown portUpDown;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button scanButton;
     }
 }
 

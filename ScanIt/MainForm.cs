@@ -147,5 +147,10 @@ namespace cz.martindobias.ScanIt
             }
             this.loaded = true;
         }
+
+        private void scanButton_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
