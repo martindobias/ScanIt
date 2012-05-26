@@ -8,7 +8,7 @@
     <ProjectGuid>{2669107B-652A-43AB-88CD-6A3C0DDE5D55}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ScanIt</RootNamespace>
+    <RootNamespace>cz.martindobias.ScanIt</RootNamespace>
     <AssemblyName>ScanIt</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handlers.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -83,6 +84,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">
@@ -122,6 +124,10 @@
       <Project>{356C55EF-6DAF-40A3-9853-C423E9621070}</Project>
       <Name>http</Name>
     </ProjectReference>
+    <ProjectReference Include="..\sockets\sockets.csproj">
+      <Project>{82354FC4-CD60-4BC0-8678-6BBC896F4FC4}</Project>
+      <Name>sockets</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TwainDotNet.WinFroms\TwainDotNet.WinFroms.csproj">
       <Project>{715EED8D-94FE-40ED-B3F7-59284FA6242B}</Project>
       <Name>TwainDotNet.WinFroms</Name>
@@ -132,6 +138,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="home.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="ScanIt128.ico" />
     <Content Include="ScanIt32.ico" />
     <Content Include="ScanIt64.ico" />

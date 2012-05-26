@@ -1,4 +1,4 @@
-﻿namespace ScanIt
+﻿namespace cz.martindobias.ScanIt
 {
     partial class MainForm
     {
@@ -33,16 +33,15 @@
             this.autostartCheckBox = new System.Windows.Forms.CheckBox();
             this.startMinimizedCheckBox = new System.Windows.Forms.CheckBox();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
+            this.serverStatusText = new System.Windows.Forms.ToolStripStatusLabel();
             this.trayIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.sourceComboBox = new System.Windows.Forms.ComboBox();
             this.sourceLabel = new System.Windows.Forms.Label();
-            this.serverStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.serverStatusText = new System.Windows.Forms.ToolStripStatusLabel();
             this.trayContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.startServerButton = new System.Windows.Forms.Button();
-            this.quitButton = new System.Windows.Forms.Button();
             this.startServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.startServerButton = new System.Windows.Forms.Button();
+            this.quitButton = new System.Windows.Forms.Button();
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.portUpDown = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
@@ -61,6 +60,7 @@
             this.autostartCheckBox.TabIndex = 0;
             this.autostartCheckBox.Text = "autostart server";
             this.autostartCheckBox.UseVisualStyleBackColor = true;
+            this.autostartCheckBox.CheckedChanged += new System.EventHandler(this.autostartCheckBox_CheckedChanged);
             // 
             // startMinimizedCheckBox
             // 
@@ -71,12 +71,12 @@
             this.startMinimizedCheckBox.TabIndex = 1;
             this.startMinimizedCheckBox.Text = "start minimized";
             this.startMinimizedCheckBox.UseVisualStyleBackColor = true;
+            this.startMinimizedCheckBox.CheckedChanged += new System.EventHandler(this.startMinimizedCheckBox_CheckedChanged);
             // 
             // statusStrip
             // 
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.serverStatusText,
-            this.serverStatusLabel});
+            this.serverStatusText});
             this.statusStrip.Location = new System.Drawing.Point(0, 238);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
@@ -85,11 +85,21 @@
             this.statusStrip.TabIndex = 2;
             this.statusStrip.Text = "statusStrip";
             // 
+            // serverStatusText
+            // 
+            this.serverStatusText.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left;
+            this.serverStatusText.Name = "serverStatusText";
+            this.serverStatusText.Size = new System.Drawing.Size(80, 19);
+            this.serverStatusText.Text = "ScanIt offline";
+            // 
             // trayIcon
             // 
+            this.trayIcon.ContextMenuStrip = this.trayContextMenuStrip;
             this.trayIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("trayIcon.Icon")));
-            this.trayIcon.Text = "ScanIt";
+            this.trayIcon.Text = "ScanIt offline";
             this.trayIcon.Visible = true;
+            this.trayIcon.Click += new System.EventHandler(this.trayIcon_Click);
+            this.trayIcon.DoubleClick += new System.EventHandler(this.trayIcon_DoubleClick);
             // 
             // sourceComboBox
             // 
@@ -108,19 +118,6 @@
             this.sourceLabel.TabIndex = 4;
             this.sourceLabel.Text = "TWAIN source";
             // 
-            // serverStatusLabel
-            // 
-            this.serverStatusLabel.Name = "serverStatusLabel";
-            this.serverStatusLabel.Size = new System.Drawing.Size(72, 19);
-            this.serverStatusLabel.Text = "server status";
-            // 
-            // serverStatusText
-            // 
-            this.serverStatusText.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left;
-            this.serverStatusText.Name = "serverStatusText";
-            this.serverStatusText.Size = new System.Drawing.Size(45, 19);
-            this.serverStatusText.Text = "offline";
-            // 
             // trayContextMenuStrip
             // 
             this.trayContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -128,6 +125,20 @@
             this.quitToolStripMenuItem});
             this.trayContextMenuStrip.Name = "trayContextMenuStrip";
             this.trayContextMenuStrip.Size = new System.Drawing.Size(133, 48);
+            // 
+            // startServerToolStripMenuItem
+            // 
+            this.startServerToolStripMenuItem.Name = "startServerToolStripMenuItem";
+            this.startServerToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+            this.startServerToolStripMenuItem.Text = "Start server";
+            this.startServerToolStripMenuItem.Click += new System.EventHandler(this.startServerToolStripMenuItem_Click);
+            // 
+            // quitToolStripMenuItem
+            // 
+            this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+            this.quitToolStripMenuItem.Text = "Quit";
+            this.quitToolStripMenuItem.Click += new System.EventHandler(this.quitToolStripMenuItem_Click);
             // 
             // startServerButton
             // 
@@ -137,6 +148,7 @@
             this.startServerButton.TabIndex = 6;
             this.startServerButton.Text = "Start server";
             this.startServerButton.UseVisualStyleBackColor = true;
+            this.startServerButton.Click += new System.EventHandler(this.startServerButton_Click);
             // 
             // quitButton
             // 
@@ -146,18 +158,7 @@
             this.quitButton.TabIndex = 7;
             this.quitButton.Text = "Quit";
             this.quitButton.UseVisualStyleBackColor = true;
-            // 
-            // startServerToolStripMenuItem
-            // 
-            this.startServerToolStripMenuItem.Name = "startServerToolStripMenuItem";
-            this.startServerToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
-            this.startServerToolStripMenuItem.Text = "Start server";
-            // 
-            // quitToolStripMenuItem
-            // 
-            this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
-            this.quitToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
-            this.quitToolStripMenuItem.Text = "Quit";
+            this.quitButton.Click += new System.EventHandler(this.quitButton_Click);
             // 
             // pictureBox
             // 
@@ -189,6 +190,7 @@
             0,
             0,
             0});
+            this.portUpDown.ValueChanged += new System.EventHandler(this.portUpDown_ValueChanged);
             // 
             // label1
             // 
@@ -219,6 +221,8 @@
             this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Text = "ScanIt";
+            this.Activated += new System.EventHandler(this.MainForm_Activated);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.trayContextMenuStrip.ResumeLayout(false);
@@ -234,7 +238,6 @@
         private System.Windows.Forms.CheckBox autostartCheckBox;
         private System.Windows.Forms.CheckBox startMinimizedCheckBox;
         private System.Windows.Forms.StatusStrip statusStrip;
-        private System.Windows.Forms.ToolStripStatusLabel serverStatusLabel;
         private System.Windows.Forms.ToolStripStatusLabel serverStatusText;
         private System.Windows.Forms.NotifyIcon trayIcon;
         private System.Windows.Forms.ComboBox sourceComboBox;
