@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using RedCorona.Net;
+using TwainDotNet;
+using TwainDotNet.WinFroms;
 
 namespace cz.martindobias.ScanIt
 {
@@ -14,6 +16,7 @@ namespace cz.martindobias.ScanIt
     {
         private HttpServer server = null;
         private bool loaded = false;
+        private Twain twain = null;
 
         public MainForm()
         {
@@ -30,6 +33,23 @@ namespace cz.martindobias.ScanIt
             this.autostartCheckBox.Checked = Properties.Settings.Default.server_autostart;
             this.startMinimizedCheckBox.Checked = Properties.Settings.Default.start_minimized;
             this.portUpDown.Value = Properties.Settings.Default.port;
+
+            this.sourceComboBox.Items.Add("");
+            bool processed = false;
+            this.twain = new Twain(new WinFormsWindowMessageHook(this));
+            foreach (string name in this.twain.SourceNames)
+            {
+                this.sourceComboBox.Items.Add(name);
+                if (name.Equals(Properties.Settings.Default.twain_source))
+                {
+                    this.sourceComboBox.SelectedItem = name;
+                    processed = true;
+                }
+            }
+            if (!processed)
+            {
+                Properties.Settings.Default.twain_source = "";
+            }
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -151,6 +171,12 @@ namespace cz.martindobias.ScanIt
         private void scanButton_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void sourceComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.twain_source = (string)this.sourceComboBox.SelectedItem;
+            this.scanButton.Enabled = !"".Equals(Properties.Settings.Default.twain_source);
         }
     }
 }

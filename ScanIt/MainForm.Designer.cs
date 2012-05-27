@@ -126,11 +126,13 @@
             // 
             // sourceComboBox
             // 
+            this.sourceComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.sourceComboBox.FormattingEnabled = true;
             this.sourceComboBox.Location = new System.Drawing.Point(15, 25);
             this.sourceComboBox.Name = "sourceComboBox";
             this.sourceComboBox.Size = new System.Drawing.Size(185, 21);
             this.sourceComboBox.TabIndex = 3;
+            this.sourceComboBox.SelectedValueChanged += new System.EventHandler(this.sourceComboBox_SelectedValueChanged);
             // 
             // sourceLabel
             // 
@@ -204,6 +206,7 @@
             // 
             // scanButton
             // 
+            this.scanButton.Enabled = false;
             this.scanButton.Location = new System.Drawing.Point(412, 175);
             this.scanButton.Name = "scanButton";
             this.scanButton.Size = new System.Drawing.Size(75, 23);
