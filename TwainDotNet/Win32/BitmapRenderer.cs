@@ -38,6 +38,15 @@ namespace TwainDotNet.Win32
                 _bitmapInfo.SizeImage = ((((_bitmapInfo.Width * _bitmapInfo.BitCount) + 31) & ~31) >> 3) * _bitmapInfo.Height;
             }
 
+            if (_bitmapInfo.XPelsPerMeter == 0)
+            {
+                _bitmapInfo.XPelsPerMeter = 2835; //72DPI
+            }
+            if (_bitmapInfo.YPelsPerMeter == 0)
+            {
+                _bitmapInfo.YPelsPerMeter = 2835; //72DPI
+            }
+
 
             // The following code only works on x86
             Debug.Assert(Marshal.SizeOf(typeof(IntPtr)) == 4);

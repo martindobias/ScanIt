@@ -9,6 +9,9 @@ using System.Windows.Forms;
 using RedCorona.Net;
 using TwainDotNet;
 using TwainDotNet.WinFroms;
+using Newtonsoft.Json;
+using System.IO;
+using System.Threading;
 
 namespace cz.martindobias.ScanIt
 {
@@ -16,7 +19,9 @@ namespace cz.martindobias.ScanIt
     {
         private HttpServer server = null;
         private bool loaded = false;
-        private Twain twain = null;
+        static private Twain twain = null;
+        static private Semaphore scanSemaphore = new Semaphore(1, 1, "ScanIt_scanSemaphore");
+        private static ScanTarget scanTarget;
 
         public MainForm()
         {
@@ -36,8 +41,8 @@ namespace cz.martindobias.ScanIt
 
             this.sourceComboBox.Items.Add("");
             bool processed = false;
-            this.twain = new Twain(new WinFormsWindowMessageHook(this));
-            foreach (string name in this.twain.SourceNames)
+            MainForm.twain = new Twain(new WinFormsWindowMessageHook(this));
+            foreach (string name in MainForm.twain.SourceNames)
             {
                 this.sourceComboBox.Items.Add(name);
                 if (name.Equals(Properties.Settings.Default.twain_source))
@@ -49,6 +54,21 @@ namespace cz.martindobias.ScanIt
             if (!processed)
             {
                 Properties.Settings.Default.twain_source = "";
+            }
+            MainForm.twain.TransferImage += new EventHandler<TransferImageEventArgs>(TransferImage);
+            MainForm.twain.ScanningComplete += new EventHandler<ScanningCompleteEventArgs>(ScanningComplete);
+        }
+
+        void ScanningComplete(object sender, ScanningCompleteEventArgs e)
+        {
+            MainForm.scanSemaphore.Release();
+        }
+
+        void TransferImage(object sender, TransferImageEventArgs e)
+        {
+            if (e.Image != null)
+            {
+                this.pictureBox.Image = e.Image;
             }
         }
 
@@ -170,7 +190,20 @@ namespace cz.martindobias.ScanIt
 
         private void scanButton_Click(object sender, EventArgs e)
         {
-
+            if (MainForm.scanSemaphore.WaitOne(0))
+            {
+                MainForm.scanTarget = ScanTarget.APP;
+                ScanSettings settings = new ScanSettings
+                {
+                    ShowTwainUI = false,
+                    //Resolution = ResolutionSettings.ColourPhotocopier                   
+                };
+                MainForm.twain.StartScanning(settings);
+            }
+            else
+            {
+                MessageBox.Show("Scanner in use, try to scan later or restart application in case of out-of-sync communication to scanner", "Scanner in use", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+            }
         }
 
         private void sourceComboBox_SelectedValueChanged(object sender, EventArgs e)
@@ -178,5 +211,59 @@ namespace cz.martindobias.ScanIt
             Properties.Settings.Default.twain_source = (string)this.sourceComboBox.SelectedItem;
             this.scanButton.Enabled = !"".Equals(Properties.Settings.Default.twain_source);
         }
+
+        class StatusHandler : SubstitutingFileReader
+        {
+            public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
+            {
+                if (request.Page.StartsWith("/status"))
+                {
+                    response.ContentType = (string)SubstitutingFileReader.MimeTypes[".html"];
+                    response.ReturnCode = 200;
+                    StringBuilder sb = new StringBuilder();
+                    StringWriter sw = new StringWriter(sb);
+
+                    using (JsonWriter jsonWriter = new JsonTextWriter(sw))
+                    {
+                        jsonWriter.Formatting = Formatting.Indented;
+                        jsonWriter.WriteStartObject();
+                        jsonWriter.WritePropertyName("twain_source");
+                        jsonWriter.WriteValue(Properties.Settings.Default.twain_source);
+                        jsonWriter.WriteComment("ID of selected TWAIN source");
+                        jsonWriter.WritePropertyName("server_autostart");
+                        jsonWriter.WriteValue(Properties.Settings.Default.server_autostart);
+                        jsonWriter.WriteComment("Shall web server be started automatically");
+                        jsonWriter.WritePropertyName("start_minimized");
+                        jsonWriter.WriteValue(Properties.Settings.Default.start_minimized);
+                        jsonWriter.WriteComment("Shall application start minimized");
+                        jsonWriter.WritePropertyName("port");
+                        jsonWriter.WriteValue(Properties.Settings.Default.port);
+                        jsonWriter.WriteComment("Web server listening port");
+                        jsonWriter.WriteEndObject();
+                    }
+
+                    response.Content = sb.ToString();
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        class EmptyHandler : SubstitutingFileReader
+        {
+            public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
+            {
+                request.Host = ".";
+                request.Page = "/home.html";
+                return base.Process(server, request, response);
+            }
+        }
+
+        enum ScanTarget
+        {
+            APP,
+            WEB
+        }
+
     }
 }
