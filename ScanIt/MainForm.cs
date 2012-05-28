@@ -22,6 +22,11 @@ namespace cz.martindobias.ScanIt
         static private Twain twain = null;
         static private Semaphore scanSemaphore = new Semaphore(1, 1, "ScanIt_scanSemaphore");
         private static ScanTarget scanTarget;
+        private static ScanSettings scanSettings = new ScanSettings
+                        {
+                    ShowTwainUI = false,
+                        };
+
 
         public MainForm()
         {
@@ -68,7 +73,10 @@ namespace cz.martindobias.ScanIt
         {
             if (e.Image != null)
             {
-                this.pictureBox.Image = e.Image;
+                if (MainForm.scanTarget == ScanTarget.APP)
+                {
+                    this.pictureBox.Image = e.Image;
+                }
             }
         }
 
@@ -193,12 +201,7 @@ namespace cz.martindobias.ScanIt
             if (MainForm.scanSemaphore.WaitOne(0))
             {
                 MainForm.scanTarget = ScanTarget.APP;
-                ScanSettings settings = new ScanSettings
-                {
-                    ShowTwainUI = false,
-                    //Resolution = ResolutionSettings.ColourPhotocopier                   
-                };
-                MainForm.twain.StartScanning(settings);
+                MainForm.twain.StartScanning(MainForm.scanSettings);
             }
             else
             {
@@ -209,6 +212,7 @@ namespace cz.martindobias.ScanIt
         private void sourceComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.twain_source = (string)this.sourceComboBox.SelectedItem;
+            MainForm.twain.SelectSource(Properties.Settings.Default.twain_source);
             this.scanButton.Enabled = !"".Equals(Properties.Settings.Default.twain_source);
         }
 
