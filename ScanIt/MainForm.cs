@@ -12,6 +12,7 @@ using TwainDotNet.WinFroms;
 using Newtonsoft.Json;
 using System.IO;
 using System.Threading;
+using System.Drawing.Imaging;
 
 namespace cz.martindobias.ScanIt
 {
@@ -137,6 +138,7 @@ namespace cz.martindobias.ScanIt
             this.server = new HttpServer(new Server(Properties.Settings.Default.port));
             this.server.Hostmap.Add(".", ".");
             this.server.Handlers.Add(new EmptyHandler());
+            this.server.Handlers.Add(new TestImageHandler());
             this.server.Handlers.Add(new StatusHandler());
 
             string text = string.Format("ScanIt online {0}", Properties.Settings.Default.port);
@@ -247,6 +249,25 @@ namespace cz.martindobias.ScanIt
                     }
 
                     response.Content = sb.ToString();
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        class TestImageHandler : SubstitutingFileReader
+        {
+            public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
+            {
+                if (request.Page.StartsWith("/test"))
+                {
+                    response.ContentType = (string)SubstitutingFileReader.MimeTypes[".png"];
+                    response.ReturnCode = 200;
+
+                    MemoryStream ms = new MemoryStream();
+                    Bitmap bitmap = new Bitmap("./TestImage.png");
+                    bitmap.Save(ms, ImageFormat.Png);
+                    response.RawContent = ms.ToArray();
                     return true;
                 }
                 return false;
