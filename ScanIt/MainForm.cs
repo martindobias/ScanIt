@@ -142,10 +142,9 @@ namespace cz.martindobias.ScanIt
 
             this.server = new HttpServer(new Server(Properties.Settings.Default.port));
             this.server.Hostmap.Add(".", ".");
-            this.server.Handlers.Add(new EmptyHandler());
-            this.server.Handlers.Add(new TestImageHandler());
+            this.server.Handlers.Add(new BasicHandler());
             this.server.Handlers.Add(new StatusHandler());
-            this.server.Handlers.Add(new ScanHandler());
+            this.server.Handlers.Add(new ScanHandler(this));
 
             string text = string.Format("ScanIt online {0}", Properties.Settings.Default.port);
             this.serverStatusText.Text = text;
@@ -226,6 +225,19 @@ namespace cz.martindobias.ScanIt
 
         class ScanHandler : SubstitutingFileReader
         {
+            private MainForm mainForm;
+
+            public ScanHandler(MainForm mainForm)
+            {
+                this.mainForm = mainForm;
+            }
+
+            delegate void ScanDelegate();
+            void Scan()
+            {
+                MainForm.twain.StartScanning(MainForm.scanSettings);
+            }
+
             public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
             {
                 if (request.Page.StartsWith("/scan"))
@@ -241,7 +253,8 @@ namespace cz.martindobias.ScanIt
                     {
                         MainForm.scanBitmap = null;
                         MainForm.scanTarget = ScanTarget.WEB;
-                        MainForm.twain.StartScanning(MainForm.scanSettings);
+                        this.mainForm.Invoke(new ScanDelegate(Scan));
+                        //MainForm.twain.StartScanning(MainForm.scanSettings);
 
                         DateTime startTime = DateTime.Now;
                         TimeSpan elapsed;
@@ -318,33 +331,22 @@ namespace cz.martindobias.ScanIt
             }
         }
 
-        class TestImageHandler : SubstitutingFileReader
+        class BasicHandler : SubstitutingFileReader
         {
             public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
             {
                 if (request.Page.StartsWith("/test"))
                 {
-                    response.ContentType = (string)SubstitutingFileReader.MimeTypes[".png"];
-                    response.ReturnCode = 200;
-
-                    MemoryStream ms = new MemoryStream();
-                    Bitmap bitmap = new Bitmap("./TestImage.png");
-                    bitmap.Save(ms, ImageFormat.Png);
-                    response.RawContent = ms.ToArray();
-                    ms.Close();
-                    return true;
+                    request.Host = ".";
+                    request.Page = "/TestImage.png";
+                    return base.Process(server, request, response);
                 }
-                return false;
-            }
-        }
-
-        class EmptyHandler : SubstitutingFileReader
-        {
-            public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
-            {
-                request.Host = ".";
-                request.Page = "/home.html";
-                return base.Process(server, request, response);
+                else
+                {
+                    request.Host = ".";
+                    request.Page = "/home.html";
+                    return base.Process(server, request, response);
+                }
             }
         }
 
