@@ -22,10 +22,11 @@ namespace cz.martindobias.ScanIt
         private bool loaded = false;
         static private Twain twain = null;
         static private Semaphore scanSemaphore = new Semaphore(1, 1, "ScanIt_scanSemaphore");
-        private static ScanTarget scanTarget;
-        private static ScanSettings scanSettings = new ScanSettings
+        static private Bitmap scanBitmap = null;
+        static private ScanTarget scanTarget;
+        static private ScanSettings scanSettings = new ScanSettings
                         {
-                    ShowTwainUI = false,
+                            ShowTwainUI = false,
                         };
 
 
@@ -77,6 +78,10 @@ namespace cz.martindobias.ScanIt
                 if (MainForm.scanTarget == ScanTarget.APP)
                 {
                     this.pictureBox.Image = e.Image;
+                }
+                else if (MainForm.scanTarget == ScanTarget.WEB)
+                {
+                    MainForm.scanBitmap = e.Image;
                 }
             }
         }
@@ -140,6 +145,7 @@ namespace cz.martindobias.ScanIt
             this.server.Handlers.Add(new EmptyHandler());
             this.server.Handlers.Add(new TestImageHandler());
             this.server.Handlers.Add(new StatusHandler());
+            this.server.Handlers.Add(new ScanHandler());
 
             string text = string.Format("ScanIt online {0}", Properties.Settings.Default.port);
             this.serverStatusText.Text = text;
@@ -218,6 +224,63 @@ namespace cz.martindobias.ScanIt
             this.scanButton.Enabled = !"".Equals(Properties.Settings.Default.twain_source);
         }
 
+        class ScanHandler : SubstitutingFileReader
+        {
+            public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
+            {
+                if (request.Page.StartsWith("/scan"))
+                {
+                    if ("".Equals(Properties.Settings.Default.twain_source))
+                    {
+                        request.Host = ".";
+                        request.Page = "/noscanner.html";
+                        return base.Process(server, request, response);
+                    }
+
+                    if (MainForm.scanSemaphore.WaitOne(0))
+                    {
+                        MainForm.scanBitmap = null;
+                        MainForm.scanTarget = ScanTarget.WEB;
+                        MainForm.twain.StartScanning(MainForm.scanSettings);
+
+                        DateTime startTime = DateTime.Now;
+                        TimeSpan elapsed;
+                        do
+                        {
+                            Thread.Sleep(100);
+                            elapsed = DateTime.Now.Subtract(startTime);
+                        } while (MainForm.scanBitmap == null && elapsed.TotalMinutes < 1);
+
+
+                        if (MainForm.scanBitmap != null)
+                        {
+                            response.ContentType = (string)SubstitutingFileReader.MimeTypes[".png"];
+                            response.ReturnCode = 200;
+
+                            MemoryStream ms = new MemoryStream();
+                            MainForm.scanBitmap.Save(ms, ImageFormat.Png);
+                            response.RawContent = ms.ToArray();
+                            ms.Close();
+                        }
+                        else
+                        {
+                            request.Host = ".";
+                            request.Page = "/failed.html";
+                            return base.Process(server, request, response);
+                        }
+                    }
+                    else
+                    {
+                        request.Host = ".";
+                        request.Page = "/blocked.html";
+                        return base.Process(server, request, response);
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
         class StatusHandler : SubstitutingFileReader
         {
             public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
@@ -268,6 +331,7 @@ namespace cz.martindobias.ScanIt
                     Bitmap bitmap = new Bitmap("./TestImage.png");
                     bitmap.Save(ms, ImageFormat.Png);
                     response.RawContent = ms.ToArray();
+                    ms.Close();
                     return true;
                 }
                 return false;
