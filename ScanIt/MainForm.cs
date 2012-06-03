@@ -267,13 +267,22 @@ namespace cz.martindobias.ScanIt
 
                         if (MainForm.scanBitmap != null)
                         {
-                            response.ContentType = (string)SubstitutingFileReader.MimeTypes[".png"];
                             response.ReturnCode = 200;
-
-                            MemoryStream ms = new MemoryStream();
-                            MainForm.scanBitmap.Save(ms, ImageFormat.Png);
-                            response.RawContent = ms.ToArray();
-                            ms.Close();
+                            using (MemoryStream ms = new MemoryStream())
+                            {
+                                MainForm.scanBitmap.Save(ms, ImageFormat.Png);
+                                if (request.Query.ContainsKey("encode") && "base64".Equals(request.Query["encode"]))
+                                {
+                                    response.ContentType = "application/octet-stream";
+                                    response.Encoding = "base64";
+                                    response.RawContent = Encoding.UTF7.GetBytes(Convert.ToBase64String(ms.ToArray()));
+                                }
+                                else
+                                {
+                                    response.ContentType = (string)SubstitutingFileReader.MimeTypes[".png"];
+                                    response.RawContent = ms.ToArray();
+                                }
+                            }
                         }
                         else
                         {

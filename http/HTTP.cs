@@ -272,11 +272,15 @@ namespace RedCorona.Net {
 			        "\r\nDate: "+DateTime.Now.ToString("R")+
 			        "\r\nServer: RedCoronaEmbedded/1.0"+
 			        "\r\nConnection: "+(close ? "close" : "Keep-Alive")));
-			if(resp.RawContent == null ) 
-				bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Encoding: utf-8"+
-					"\r\nContent-Length: "+resp.Content.Length));
-			else 
-				bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Length: "+resp.RawContent.Length));
+            if (resp.RawContent == null)
+                bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Encoding: utf-8" +
+                    "\r\nContent-Length: " + resp.Content.Length));
+            else
+            {
+                if(resp.Encoding != null)
+                    bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Encoding: " + resp.Encoding));
+                bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Length: " + resp.RawContent.Length));
+            }
 			if(resp.ContentType != null)
 				bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Type: "+resp.ContentType));
 			if(req.Session != null) bb.Add(Encoding.UTF8.GetBytes("\r\nSet-Cookie: _sessid="+req.Session.ID+"; path=/"));
@@ -331,6 +335,7 @@ namespace RedCorona.Net {
 		public Dictionary<string, string> Header = new Dictionary<string, string>();
 		public string Url, Content, ContentType = "text/html";
 		public byte[] RawContent = null;
+        public string Encoding = null;
 		
 		public HttpResponse(){}
 		public HttpResponse(int code, string content){ ReturnCode = code; Content = content; }
