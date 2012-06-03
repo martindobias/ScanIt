@@ -268,6 +268,39 @@ namespace cz.martindobias.ScanIt
                                 throw new Exception("Unknown source: " + source);
                             }
                         }
+
+                        if (request.Query.ContainsKey("x"))
+                        {
+                            x = Int32.Parse(request.Query["x"]);
+                            if (x <= 0)
+                            {
+                                throw new Exception("X has to be positive: " + x);
+                            }
+                        }
+                        if (request.Query.ContainsKey("y"))
+                        {
+                            y = Int32.Parse(request.Query["y"]);
+                            if (y <= 0)
+                            {
+                                throw new Exception("Y has to be positive: " + y);
+                            }
+                        }
+                        if (request.Query.ContainsKey("w"))
+                        {
+                            w = Int32.Parse(request.Query["w"]);
+                            if (w <= 0)
+                            {
+                                throw new Exception("Width has to be positive: " + w);
+                            }
+                        }
+                        if (request.Query.ContainsKey("h"))
+                        {
+                            h = Int32.Parse(request.Query["h"]);
+                            if (h <= 0)
+                            {
+                                throw new Exception("Height has to be positive: " + h);
+                            }
+                        }
                     }
                     catch (Exception e) {
                         response.ReturnCode = 500;
@@ -303,6 +336,10 @@ namespace cz.martindobias.ScanIt
                             response.ReturnCode = 200;
                             using (MemoryStream ms = new MemoryStream())
                             {
+                                if (x > 0 && y > 0 && w > 0 && h > 0)
+                                {
+                                    this.mainForm.scanBitmap = this.mainForm.scanBitmap.Clone(new Rectangle { X = x, Y = y, Width = w, Height = h }, this.mainForm.scanBitmap.PixelFormat);
+                                }
                                 this.mainForm.scanBitmap.Save(ms, ImageFormat.Png);
                                 if (request.Query.ContainsKey("encode") && "base64".Equals(request.Query["encode"]))
                                 {
