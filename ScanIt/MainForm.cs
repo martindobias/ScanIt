@@ -41,6 +41,10 @@ namespace cz.martindobias.ScanIt
             this.autostartCheckBox.Checked = Properties.Settings.Default.server_autostart;
             this.startMinimizedCheckBox.Checked = Properties.Settings.Default.start_minimized;
             this.portUpDown.Value = Properties.Settings.Default.port;
+            this.xUpDown.Value = Properties.Settings.Default.x;
+            this.yUpDown.Value = Properties.Settings.Default.y;
+            this.wUpDown.Value = Properties.Settings.Default.w;
+            this.hUpDown.Value = Properties.Settings.Default.h;
 
             this.sourceComboBox.Items.Add("");
             bool processed = false;
@@ -253,12 +257,29 @@ namespace cz.martindobias.ScanIt
                 if (request.Page.StartsWith("/scan"))
                 {
                     string source = null;
-                    if (request.Query.ContainsKey("source")) source = System.Web.HttpUtility.UrlDecode(request.Query["source"]);
+                    int x = 0, y = 0, w = 0, h = 0;
+                    try 
+                    {
+                        if (request.Query.ContainsKey("source")) 
+                        {
+                            source = System.Web.HttpUtility.UrlDecode(request.Query["source"]);
+                            if(!this.mainForm.twain.SourceNames.Contains(source)) 
+                            {
+                                throw new Exception("Unknown source: " + source);
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        response.ReturnCode = 500;
+                        response.Content = "Invalid URL arguments: " + e.Message;
+                        return true;
+                    }
 
                     if ((source == null && "".Equals(Properties.Settings.Default.twain_source)) || ("".Equals(source)))
                     {
                         request.Host = ".";
                         request.Page = "/noscanner.html";
+                        response.ReturnCode = 500;
                         return base.Process(server, request, response);
                     }
 
@@ -300,6 +321,7 @@ namespace cz.martindobias.ScanIt
                         {
                             request.Host = ".";
                             request.Page = "/failed.html";
+                            response.ReturnCode = 500;
                             return base.Process(server, request, response);
                         }
                     }
@@ -307,6 +329,7 @@ namespace cz.martindobias.ScanIt
                     {
                         request.Host = ".";
                         request.Page = "/blocked.html";
+                        response.ReturnCode = 500;
                         return base.Process(server, request, response);
                     }
                     return true;
@@ -412,6 +435,26 @@ namespace cz.martindobias.ScanIt
         {
             APP,
             WEB
+        }
+
+        private void xUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.x = (int)this.xUpDown.Value;
+        }
+
+        private void yUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.y = (int)this.yUpDown.Value;
+        }
+
+        private void wUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.w = (int)this.wUpDown.Value;
+        }
+
+        private void hUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.h = (int)this.hUpDown.Value;
         }
 
     }

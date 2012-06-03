@@ -44,12 +44,24 @@
             this.quitButton = new System.Windows.Forms.Button();
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.portUpDown = new System.Windows.Forms.NumericUpDown();
-            this.label1 = new System.Windows.Forms.Label();
+            this.portLabel = new System.Windows.Forms.Label();
             this.scanButton = new System.Windows.Forms.Button();
+            this.xUpDown = new System.Windows.Forms.NumericUpDown();
+            this.yUpDown = new System.Windows.Forms.NumericUpDown();
+            this.xLabel = new System.Windows.Forms.Label();
+            this.yLabel = new System.Windows.Forms.Label();
+            this.hLabel = new System.Windows.Forms.Label();
+            this.wLabel = new System.Windows.Forms.Label();
+            this.hUpDown = new System.Windows.Forms.NumericUpDown();
+            this.wUpDown = new System.Windows.Forms.NumericUpDown();
             this.statusStrip.SuspendLayout();
             this.trayContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.portUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.xUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.yUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.hUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // autostartCheckBox
@@ -196,14 +208,14 @@
             0});
             this.portUpDown.ValueChanged += new System.EventHandler(this.portUpDown_ValueChanged);
             // 
-            // label1
+            // portLabel
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(206, 59);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(25, 13);
-            this.label1.TabIndex = 10;
-            this.label1.Text = "port";
+            this.portLabel.AutoSize = true;
+            this.portLabel.Location = new System.Drawing.Point(206, 59);
+            this.portLabel.Name = "portLabel";
+            this.portLabel.Size = new System.Drawing.Size(25, 13);
+            this.portLabel.TabIndex = 10;
+            this.portLabel.Text = "port";
             // 
             // scanButton
             // 
@@ -216,13 +228,109 @@
             this.scanButton.UseVisualStyleBackColor = true;
             this.scanButton.Click += new System.EventHandler(this.scanButton_Click);
             // 
+            // xUpDown
+            // 
+            this.xUpDown.Location = new System.Drawing.Point(15, 75);
+            this.xUpDown.Maximum = new decimal(new int[] {
+            100000000,
+            0,
+            0,
+            0});
+            this.xUpDown.Name = "xUpDown";
+            this.xUpDown.Size = new System.Drawing.Size(83, 20);
+            this.xUpDown.TabIndex = 12;
+            this.xUpDown.ValueChanged += new System.EventHandler(this.xUpDown_ValueChanged);
+            // 
+            // yUpDown
+            // 
+            this.yUpDown.Location = new System.Drawing.Point(104, 75);
+            this.yUpDown.Maximum = new decimal(new int[] {
+            100000000,
+            0,
+            0,
+            0});
+            this.yUpDown.Name = "yUpDown";
+            this.yUpDown.Size = new System.Drawing.Size(83, 20);
+            this.yUpDown.TabIndex = 13;
+            this.yUpDown.ValueChanged += new System.EventHandler(this.yUpDown_ValueChanged);
+            // 
+            // xLabel
+            // 
+            this.xLabel.AutoSize = true;
+            this.xLabel.Location = new System.Drawing.Point(12, 59);
+            this.xLabel.Name = "xLabel";
+            this.xLabel.Size = new System.Drawing.Size(14, 13);
+            this.xLabel.TabIndex = 14;
+            this.xLabel.Text = "X";
+            // 
+            // yLabel
+            // 
+            this.yLabel.AutoSize = true;
+            this.yLabel.Location = new System.Drawing.Point(101, 59);
+            this.yLabel.Name = "yLabel";
+            this.yLabel.Size = new System.Drawing.Size(14, 13);
+            this.yLabel.TabIndex = 15;
+            this.yLabel.Text = "Y";
+            // 
+            // hLabel
+            // 
+            this.hLabel.AutoSize = true;
+            this.hLabel.Location = new System.Drawing.Point(101, 98);
+            this.hLabel.Name = "hLabel";
+            this.hLabel.Size = new System.Drawing.Size(36, 13);
+            this.hLabel.TabIndex = 19;
+            this.hLabel.Text = "height";
+            // 
+            // wLabel
+            // 
+            this.wLabel.AutoSize = true;
+            this.wLabel.Location = new System.Drawing.Point(12, 98);
+            this.wLabel.Name = "wLabel";
+            this.wLabel.Size = new System.Drawing.Size(32, 13);
+            this.wLabel.TabIndex = 18;
+            this.wLabel.Text = "width";
+            // 
+            // hUpDown
+            // 
+            this.hUpDown.Location = new System.Drawing.Point(104, 114);
+            this.hUpDown.Maximum = new decimal(new int[] {
+            100000000,
+            0,
+            0,
+            0});
+            this.hUpDown.Name = "hUpDown";
+            this.hUpDown.Size = new System.Drawing.Size(83, 20);
+            this.hUpDown.TabIndex = 17;
+            this.hUpDown.ValueChanged += new System.EventHandler(this.hUpDown_ValueChanged);
+            // 
+            // wUpDown
+            // 
+            this.wUpDown.Location = new System.Drawing.Point(15, 114);
+            this.wUpDown.Maximum = new decimal(new int[] {
+            100000000,
+            0,
+            0,
+            0});
+            this.wUpDown.Name = "wUpDown";
+            this.wUpDown.Size = new System.Drawing.Size(83, 20);
+            this.wUpDown.TabIndex = 16;
+            this.wUpDown.ValueChanged += new System.EventHandler(this.wUpDown_ValueChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(508, 262);
+            this.Controls.Add(this.hLabel);
+            this.Controls.Add(this.wLabel);
+            this.Controls.Add(this.hUpDown);
+            this.Controls.Add(this.wUpDown);
+            this.Controls.Add(this.yLabel);
+            this.Controls.Add(this.xLabel);
+            this.Controls.Add(this.yUpDown);
+            this.Controls.Add(this.xUpDown);
             this.Controls.Add(this.scanButton);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.portLabel);
             this.Controls.Add(this.pictureBox);
             this.Controls.Add(this.portUpDown);
             this.Controls.Add(this.quitButton);
@@ -244,6 +352,10 @@
             this.trayContextMenuStrip.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.portUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.xUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.yUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.hUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.wUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -265,8 +377,16 @@
         private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.NumericUpDown portUpDown;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label portLabel;
         private System.Windows.Forms.Button scanButton;
+        private System.Windows.Forms.NumericUpDown xUpDown;
+        private System.Windows.Forms.NumericUpDown yUpDown;
+        private System.Windows.Forms.Label xLabel;
+        private System.Windows.Forms.Label yLabel;
+        private System.Windows.Forms.Label hLabel;
+        private System.Windows.Forms.Label wLabel;
+        private System.Windows.Forms.NumericUpDown hUpDown;
+        private System.Windows.Forms.NumericUpDown wUpDown;
     }
 }
 

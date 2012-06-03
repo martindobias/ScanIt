@@ -70,5 +70,53 @@ namespace cz.martindobias.ScanIt.Properties {
                 this["port"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int x {
+            get {
+                return ((int)(this["x"]));
+            }
+            set {
+                this["x"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int y {
+            get {
+                return ((int)(this["y"]));
+            }
+            set {
+                this["y"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int w {
+            get {
+                return ((int)(this["w"]));
+            }
+            set {
+                this["w"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int h {
+            get {
+                return ((int)(this["h"]));
+            }
+            set {
+                this["h"] = value;
+            }
+        }
     }
 }
