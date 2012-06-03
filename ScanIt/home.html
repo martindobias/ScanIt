@@ -34,11 +34,11 @@
         </dd>
         <dt>x</dt>
         <dd>
-          The x-coordinate of the upper-left corner of the crop rectangle; positive, higher than 0
+          The x-coordinate of the upper-left corner of the crop rectangle; positive, higher than or equal to 0
         </dd>
         <dt>y</dt>
         <dd>
-          The y-coordinate of the upper-left corner of the crop rectangle; positive, higher than 0
+          The y-coordinate of the upper-left corner of the crop rectangle; positive, higher than or equal to 0
         </dd>
         <dt>w</dt>
         <dd>
@@ -49,6 +49,9 @@
           The height of the crop rectangle; positive, higher than 0
         </dd>
       </dl>
+      <p>
+        Please note, actual crop is defined as intersection of desired crop rectangle and the image. Should the intersection be empty, whole image is provided.
+      </p>
     </p>
   </body>
 </html>

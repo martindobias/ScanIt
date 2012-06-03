@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 using RedCorona.Net;
 using TwainDotNet;
 using TwainDotNet.WinFroms;
-using Newtonsoft.Json;
-using System.IO;
-using System.Threading;
-using System.Drawing.Imaging;
 
 namespace cz.martindobias.ScanIt
 {
@@ -45,6 +45,7 @@ namespace cz.martindobias.ScanIt
             this.yUpDown.Value = Properties.Settings.Default.y;
             this.wUpDown.Value = Properties.Settings.Default.w;
             this.hUpDown.Value = Properties.Settings.Default.h;
+            if (this.encodingComboBox.Items.Contains(Properties.Settings.Default.encode)) this.encodingComboBox.SelectedItem = Properties.Settings.Default.encode;
 
             this.sourceComboBox.Items.Add("");
             bool processed = false;
@@ -77,7 +78,19 @@ namespace cz.martindobias.ScanIt
             {
                 if (this.scanTarget == ScanTarget.APP)
                 {
-                    this.pictureBox.Image = e.Image;
+                    int x = Properties.Settings.Default.x;
+                    int y = Properties.Settings.Default.y;
+                    int w = Properties.Settings.Default.w;
+                    int h = Properties.Settings.Default.h;
+                    Rectangle r = MainForm.getRectangle(e.Image, x, y, w, h);
+                    if (!r.IsEmpty)
+                    {
+                        this.pictureBox.Image = e.Image.Clone(MainForm.getRectangle(e.Image, x, y, w, h), e.Image.PixelFormat);
+                    }
+                    else
+                    {
+                        this.pictureBox.Image = e.Image;
+                    }
                 }
                 else if (this.scanTarget == ScanTarget.WEB)
                 {
@@ -231,7 +244,6 @@ namespace cz.martindobias.ScanIt
         private void sourceComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.twain_source = (string)this.sourceComboBox.SelectedItem;
-            //this.twain.SelectSource(Properties.Settings.Default.twain_source);
             this.scanButton.Enabled = !"".Equals(Properties.Settings.Default.twain_source);
         }
 
@@ -256,51 +268,36 @@ namespace cz.martindobias.ScanIt
             {
                 if (request.Page.StartsWith("/scan"))
                 {
-                    string source = null;
-                    int x = 0, y = 0, w = 0, h = 0;
+                    string source = Properties.Settings.Default.twain_source;
+                    int x = Properties.Settings.Default.x;
+                    int y = Properties.Settings.Default.y;
+                    int w = Properties.Settings.Default.w;
+                    int h = Properties.Settings.Default.h;
+                    string encode = Properties.Settings.Default.encode;
                     try 
                     {
-                        if (request.Query.ContainsKey("source")) 
+                        if (request.Query.ContainsKey("source"))
                         {
                             source = System.Web.HttpUtility.UrlDecode(request.Query["source"]);
-                            if(!this.mainForm.twain.SourceNames.Contains(source)) 
+                            if (!this.mainForm.twain.SourceNames.Contains(source))
                             {
                                 throw new Exception("Unknown source: " + source);
                             }
                         }
 
-                        if (request.Query.ContainsKey("x"))
+                        if (request.Query.ContainsKey("encode"))
                         {
-                            x = Int32.Parse(request.Query["x"]);
-                            if (x <= 0)
+                            encode = request.Query["source"];
+                            if (!"base64".Equals(encode))
                             {
-                                throw new Exception("X has to be positive: " + x);
+                                throw new Exception("Unknown encoding: " + encode);
                             }
                         }
-                        if (request.Query.ContainsKey("y"))
-                        {
-                            y = Int32.Parse(request.Query["y"]);
-                            if (y <= 0)
-                            {
-                                throw new Exception("Y has to be positive: " + y);
-                            }
-                        }
-                        if (request.Query.ContainsKey("w"))
-                        {
-                            w = Int32.Parse(request.Query["w"]);
-                            if (w <= 0)
-                            {
-                                throw new Exception("Width has to be positive: " + w);
-                            }
-                        }
-                        if (request.Query.ContainsKey("h"))
-                        {
-                            h = Int32.Parse(request.Query["h"]);
-                            if (h <= 0)
-                            {
-                                throw new Exception("Height has to be positive: " + h);
-                            }
-                        }
+
+                        x = getDimension(request, x, "x");
+                        y = getDimension(request, y, "y");
+                        w = getDimension(request, w, "w");
+                        h = getDimension(request, h, "h");
                     }
                     catch (Exception e) {
                         response.ReturnCode = 500;
@@ -336,12 +333,13 @@ namespace cz.martindobias.ScanIt
                             response.ReturnCode = 200;
                             using (MemoryStream ms = new MemoryStream())
                             {
-                                if (x > 0 && y > 0 && w > 0 && h > 0)
+                                Rectangle r = MainForm.getRectangle(this.mainForm.scanBitmap, x, y, w, h);
+                                if (!r.IsEmpty)
                                 {
-                                    this.mainForm.scanBitmap = this.mainForm.scanBitmap.Clone(new Rectangle { X = x, Y = y, Width = w, Height = h }, this.mainForm.scanBitmap.PixelFormat);
+                                    this.mainForm.scanBitmap = this.mainForm.scanBitmap.Clone(r, this.mainForm.scanBitmap.PixelFormat);
                                 }
                                 this.mainForm.scanBitmap.Save(ms, ImageFormat.Png);
-                                if (request.Query.ContainsKey("encode") && "base64".Equals(request.Query["encode"]))
+                                if ("base64".Equals(encode))
                                 {
                                     response.ContentType = "application/octet-stream";
                                     response.Encoding = "base64";
@@ -373,6 +371,19 @@ namespace cz.martindobias.ScanIt
                 }
                 return false;
             }
+
+            private static int getDimension(HttpRequest request, int x, string attribute)
+            {
+                if (request.Query.ContainsKey(attribute))
+                {
+                    x = Int32.Parse(request.Query[attribute]);
+                    if (x < 0)
+                    {
+                        throw new Exception(attribute + " has to be positive, or zero: " + x);
+                    }
+                }
+                return x;
+            }
         }
 
         class StatusHandler : SubstitutingFileReader
@@ -393,12 +404,35 @@ namespace cz.martindobias.ScanIt
                         jsonWriter.WritePropertyName("twain_source");
                         jsonWriter.WriteValue(Properties.Settings.Default.twain_source);
                         jsonWriter.WriteComment("ID of selected TWAIN source");
+
+                        jsonWriter.WritePropertyName("x");
+                        jsonWriter.WriteValue(Properties.Settings.Default.x);
+                        jsonWriter.WriteComment("The x-coordinate of the upper-left corner of the crop rectangle");
+                        
+                        jsonWriter.WritePropertyName("y");
+                        jsonWriter.WriteValue(Properties.Settings.Default.y);
+                        jsonWriter.WriteComment("The y-coordinate of the upper-left corner of the crop rectangle");
+                        
+                        jsonWriter.WritePropertyName("w");
+                        jsonWriter.WriteValue(Properties.Settings.Default.w);
+                        jsonWriter.WriteComment("The width of the crop rectangle");
+                        
+                        jsonWriter.WritePropertyName("h");
+                        jsonWriter.WriteValue(Properties.Settings.Default.h);
+                        jsonWriter.WriteComment("The height of the crop rectangle");
+                        
+                        jsonWriter.WritePropertyName("encode");
+                        jsonWriter.WriteValue(Properties.Settings.Default.encode);
+                        jsonWriter.WriteComment("Encoding setup");
+                        
                         jsonWriter.WritePropertyName("server_autostart");
                         jsonWriter.WriteValue(Properties.Settings.Default.server_autostart);
                         jsonWriter.WriteComment("Shall web server be started automatically");
+                        
                         jsonWriter.WritePropertyName("start_minimized");
                         jsonWriter.WriteValue(Properties.Settings.Default.start_minimized);
                         jsonWriter.WriteComment("Shall application start minimized");
+                        
                         jsonWriter.WritePropertyName("port");
                         jsonWriter.WriteValue(Properties.Settings.Default.port);
                         jsonWriter.WriteComment("Web server listening port");
@@ -494,5 +528,21 @@ namespace cz.martindobias.ScanIt
             Properties.Settings.Default.h = (int)this.hUpDown.Value;
         }
 
+
+        internal static Rectangle getRectangle(Bitmap bitmap, int x, int y, int w, int h)
+        {
+            return Rectangle.Intersect(new Rectangle(new Point(0, 0), bitmap.Size), new Rectangle
+            {
+                X = x,
+                Y = y,
+                Width = w,
+                Height = h
+            });
+        }
+
+        private void encodingComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.encode = (string)this.encodingComboBox.SelectedItem;
+        }
     }
 }

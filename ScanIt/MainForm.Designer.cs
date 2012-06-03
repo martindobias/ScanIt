@@ -54,6 +54,8 @@
             this.wLabel = new System.Windows.Forms.Label();
             this.hUpDown = new System.Windows.Forms.NumericUpDown();
             this.wUpDown = new System.Windows.Forms.NumericUpDown();
+            this.encodingLabel = new System.Windows.Forms.Label();
+            this.encodingComboBox = new System.Windows.Forms.ComboBox();
             this.statusStrip.SuspendLayout();
             this.trayContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
@@ -142,7 +144,7 @@
             this.sourceComboBox.FormattingEnabled = true;
             this.sourceComboBox.Location = new System.Drawing.Point(15, 25);
             this.sourceComboBox.Name = "sourceComboBox";
-            this.sourceComboBox.Size = new System.Drawing.Size(185, 21);
+            this.sourceComboBox.Size = new System.Drawing.Size(172, 21);
             this.sourceComboBox.TabIndex = 3;
             this.sourceComboBox.SelectedValueChanged += new System.EventHandler(this.sourceComboBox_SelectedValueChanged);
             // 
@@ -157,9 +159,9 @@
             // 
             // startServerButton
             // 
-            this.startServerButton.Location = new System.Drawing.Point(12, 214);
+            this.startServerButton.Location = new System.Drawing.Point(15, 214);
             this.startServerButton.Name = "startServerButton";
-            this.startServerButton.Size = new System.Drawing.Size(241, 23);
+            this.startServerButton.Size = new System.Drawing.Size(172, 23);
             this.startServerButton.TabIndex = 6;
             this.startServerButton.Text = "Start server";
             this.startServerButton.UseVisualStyleBackColor = true;
@@ -167,9 +169,9 @@
             // 
             // quitButton
             // 
-            this.quitButton.Location = new System.Drawing.Point(259, 214);
+            this.quitButton.Location = new System.Drawing.Point(206, 214);
             this.quitButton.Name = "quitButton";
-            this.quitButton.Size = new System.Drawing.Size(241, 23);
+            this.quitButton.Size = new System.Drawing.Size(127, 23);
             this.quitButton.TabIndex = 7;
             this.quitButton.Text = "Quit";
             this.quitButton.UseVisualStyleBackColor = true;
@@ -178,9 +180,9 @@
             // pictureBox
             // 
             this.pictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBox.Location = new System.Drawing.Point(339, 12);
+            this.pictureBox.Location = new System.Drawing.Point(349, 12);
             this.pictureBox.Name = "pictureBox";
-            this.pictureBox.Size = new System.Drawing.Size(157, 196);
+            this.pictureBox.Size = new System.Drawing.Size(147, 223);
             this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox.TabIndex = 8;
             this.pictureBox.TabStop = false;
@@ -220,7 +222,7 @@
             // scanButton
             // 
             this.scanButton.Enabled = false;
-            this.scanButton.Location = new System.Drawing.Point(412, 175);
+            this.scanButton.Location = new System.Drawing.Point(411, 203);
             this.scanButton.Name = "scanButton";
             this.scanButton.Size = new System.Drawing.Size(75, 23);
             this.scanButton.TabIndex = 11;
@@ -316,11 +318,35 @@
             this.wUpDown.TabIndex = 16;
             this.wUpDown.ValueChanged += new System.EventHandler(this.wUpDown_ValueChanged);
             // 
+            // encodingLabel
+            // 
+            this.encodingLabel.AutoSize = true;
+            this.encodingLabel.Location = new System.Drawing.Point(15, 155);
+            this.encodingLabel.Name = "encodingLabel";
+            this.encodingLabel.Size = new System.Drawing.Size(44, 13);
+            this.encodingLabel.TabIndex = 20;
+            this.encodingLabel.Text = "Encode";
+            // 
+            // encodingComboBox
+            // 
+            this.encodingComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.encodingComboBox.FormattingEnabled = true;
+            this.encodingComboBox.Items.AddRange(new object[] {
+            "",
+            "base64"});
+            this.encodingComboBox.Location = new System.Drawing.Point(15, 172);
+            this.encodingComboBox.Name = "encodingComboBox";
+            this.encodingComboBox.Size = new System.Drawing.Size(172, 21);
+            this.encodingComboBox.TabIndex = 21;
+            this.encodingComboBox.SelectedValueChanged += new System.EventHandler(this.encodingComboBox_SelectedValueChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(508, 262);
+            this.Controls.Add(this.encodingComboBox);
+            this.Controls.Add(this.encodingLabel);
             this.Controls.Add(this.hLabel);
             this.Controls.Add(this.wLabel);
             this.Controls.Add(this.hUpDown);
@@ -387,6 +413,8 @@
         private System.Windows.Forms.Label wLabel;
         private System.Windows.Forms.NumericUpDown hUpDown;
         private System.Windows.Forms.NumericUpDown wUpDown;
+        private System.Windows.Forms.Label encodingLabel;
+        private System.Windows.Forms.ComboBox encodingComboBox;
     }
 }
 

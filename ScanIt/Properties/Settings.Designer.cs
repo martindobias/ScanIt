@@ -118,5 +118,17 @@ namespace cz.martindobias.ScanIt.Properties {
                 this["h"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string encode {
+            get {
+                return ((string)(this["encode"]));
+            }
+            set {
+                this["encode"] = value;
+            }
+        }
     }
 }
