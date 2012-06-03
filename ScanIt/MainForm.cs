@@ -20,14 +20,10 @@ namespace cz.martindobias.ScanIt
     {
         private HttpServer server = null;
         private bool loaded = false;
-        static private Twain twain = null;
-        static private Semaphore scanSemaphore = new Semaphore(1, 1, "ScanIt_scanSemaphore");
-        static private Bitmap scanBitmap = null;
-        static private ScanTarget scanTarget;
-        static private ScanSettings scanSettings = new ScanSettings
-                        {
-                            ShowTwainUI = false,
-                        };
+        Twain twain = null;
+        Semaphore scanSemaphore = new Semaphore(1, 1, "ScanIt_scanSemaphore");
+        Bitmap scanBitmap = null;
+        ScanTarget scanTarget;
 
 
         public MainForm()
@@ -48,8 +44,8 @@ namespace cz.martindobias.ScanIt
 
             this.sourceComboBox.Items.Add("");
             bool processed = false;
-            MainForm.twain = new Twain(new WinFormsWindowMessageHook(this));
-            foreach (string name in MainForm.twain.SourceNames)
+            this.twain = new Twain(new WinFormsWindowMessageHook(this));
+            foreach (string name in this.twain.SourceNames)
             {
                 this.sourceComboBox.Items.Add(name);
                 if (name.Equals(Properties.Settings.Default.twain_source))
@@ -62,26 +58,26 @@ namespace cz.martindobias.ScanIt
             {
                 Properties.Settings.Default.twain_source = "";
             }
-            MainForm.twain.TransferImage += new EventHandler<TransferImageEventArgs>(TransferImage);
-            MainForm.twain.ScanningComplete += new EventHandler<ScanningCompleteEventArgs>(ScanningComplete);
+            this.twain.TransferImage += new EventHandler<TransferImageEventArgs>(TransferImage);
+            this.twain.ScanningComplete += new EventHandler<ScanningCompleteEventArgs>(ScanningComplete);
         }
 
         void ScanningComplete(object sender, ScanningCompleteEventArgs e)
         {
-            MainForm.scanSemaphore.Release();
+            this.scanSemaphore.Release();
         }
 
         void TransferImage(object sender, TransferImageEventArgs e)
         {
             if (e.Image != null)
             {
-                if (MainForm.scanTarget == ScanTarget.APP)
+                if (this.scanTarget == ScanTarget.APP)
                 {
                     this.pictureBox.Image = e.Image;
                 }
-                else if (MainForm.scanTarget == ScanTarget.WEB)
+                else if (this.scanTarget == ScanTarget.WEB)
                 {
-                    MainForm.scanBitmap = e.Image;
+                    this.scanBitmap = e.Image;
                 }
             }
         }
@@ -143,6 +139,7 @@ namespace cz.martindobias.ScanIt
             this.server = new HttpServer(new Server(Properties.Settings.Default.port));
             this.server.Hostmap.Add(".", ".");
             this.server.Handlers.Add(new BasicHandler());
+            this.server.Handlers.Add(new SourceListHandler(this));
             this.server.Handlers.Add(new StatusHandler());
             this.server.Handlers.Add(new ScanHandler(this));
 
@@ -205,10 +202,11 @@ namespace cz.martindobias.ScanIt
 
         private void scanButton_Click(object sender, EventArgs e)
         {
-            if (MainForm.scanSemaphore.WaitOne(0))
+            if (!"".Equals(Properties.Settings.Default.twain_source) && this.scanSemaphore.WaitOne(0))
             {
-                MainForm.scanTarget = ScanTarget.APP;
-                MainForm.twain.StartScanning(MainForm.scanSettings);
+                this.scanTarget = ScanTarget.APP;
+                this.twain.SelectSource(Properties.Settings.Default.twain_source);
+                this.twain.StartScanning(MainForm.CreateDefaultSettings());
             }
             else
             {
@@ -216,10 +214,20 @@ namespace cz.martindobias.ScanIt
             }
         }
 
+        static private ScanSettings CreateDefaultSettings()
+        {
+            ScanSettings scanSettings = new ScanSettings
+                          {
+                              ShowTwainUI = false,
+                          };
+
+            return scanSettings;
+        }
+
         private void sourceComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.twain_source = (string)this.sourceComboBox.SelectedItem;
-            MainForm.twain.SelectSource(Properties.Settings.Default.twain_source);
+            //this.twain.SelectSource(Properties.Settings.Default.twain_source);
             this.scanButton.Enabled = !"".Equals(Properties.Settings.Default.twain_source);
         }
 
@@ -232,29 +240,33 @@ namespace cz.martindobias.ScanIt
                 this.mainForm = mainForm;
             }
 
-            delegate void ScanDelegate();
-            void Scan()
+            delegate void ScanDelegate(string twain_source);
+            void Scan(string twain_source)
             {
-                MainForm.twain.StartScanning(MainForm.scanSettings);
+                this.mainForm.twain.SelectSource(twain_source == null ? Properties.Settings.Default.twain_source : twain_source);
+                ScanSettings settings = MainForm.CreateDefaultSettings();
+                this.mainForm.twain.StartScanning(settings);
             }
 
             public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
             {
                 if (request.Page.StartsWith("/scan"))
                 {
-                    if ("".Equals(Properties.Settings.Default.twain_source))
+                    string source = null;
+                    if (request.Query.ContainsKey("source")) source = System.Web.HttpUtility.UrlDecode(request.Query["source"]);
+
+                    if ((source == null && "".Equals(Properties.Settings.Default.twain_source)) || ("".Equals(source)))
                     {
                         request.Host = ".";
                         request.Page = "/noscanner.html";
                         return base.Process(server, request, response);
                     }
 
-                    if (MainForm.scanSemaphore.WaitOne(0))
+                    if (this.mainForm.scanSemaphore.WaitOne(0))
                     {
-                        MainForm.scanBitmap = null;
-                        MainForm.scanTarget = ScanTarget.WEB;
-                        this.mainForm.Invoke(new ScanDelegate(Scan));
-                        //MainForm.twain.StartScanning(MainForm.scanSettings);
+                        this.mainForm.scanBitmap = null;
+                        this.mainForm.scanTarget = ScanTarget.WEB;
+                        this.mainForm.Invoke(new ScanDelegate(Scan), new object[] { source });
 
                         DateTime startTime = DateTime.Now;
                         TimeSpan elapsed;
@@ -262,15 +274,15 @@ namespace cz.martindobias.ScanIt
                         {
                             Thread.Sleep(100);
                             elapsed = DateTime.Now.Subtract(startTime);
-                        } while (MainForm.scanBitmap == null && elapsed.TotalMinutes < 1);
+                        } while (this.mainForm.scanBitmap == null && elapsed.TotalMinutes < 1);
 
 
-                        if (MainForm.scanBitmap != null)
+                        if (this.mainForm.scanBitmap != null)
                         {
                             response.ReturnCode = 200;
                             using (MemoryStream ms = new MemoryStream())
                             {
-                                MainForm.scanBitmap.Save(ms, ImageFormat.Png);
+                                this.mainForm.scanBitmap.Save(ms, ImageFormat.Png);
                                 if (request.Query.ContainsKey("encode") && "base64".Equals(request.Query["encode"]))
                                 {
                                     response.ContentType = "application/octet-stream";
@@ -330,6 +342,43 @@ namespace cz.martindobias.ScanIt
                         jsonWriter.WritePropertyName("port");
                         jsonWriter.WriteValue(Properties.Settings.Default.port);
                         jsonWriter.WriteComment("Web server listening port");
+                        jsonWriter.WriteEndObject();
+                    }
+
+                    response.Content = sb.ToString();
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        class SourceListHandler : SubstitutingFileReader
+        {
+            private MainForm mainForm;
+
+            public SourceListHandler(MainForm mainForm)
+            {
+                this.mainForm = mainForm;
+            }
+
+            public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
+            {
+                if (request.Page.StartsWith("/sources"))
+                {
+                    response.ContentType = (string)SubstitutingFileReader.MimeTypes[".html"];
+                    response.ReturnCode = 200;
+                    StringBuilder sb = new StringBuilder();
+                    StringWriter sw = new StringWriter(sb);
+
+                    using (JsonWriter jsonWriter = new JsonTextWriter(sw))
+                    {
+                        jsonWriter.Formatting = Formatting.Indented;
+                        jsonWriter.WriteStartObject();
+                        foreach (string name in this.mainForm.twain.SourceNames)
+                        {
+                            jsonWriter.WritePropertyName(name);
+                            jsonWriter.WriteValue(System.Web.HttpUtility.UrlEncode(name));
+                        }
                         jsonWriter.WriteEndObject();
                     }
 
