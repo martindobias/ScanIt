@@ -143,6 +143,7 @@ namespace cz.martindobias.ScanIt
             this.server = new HttpServer(new Server(Properties.Settings.Default.port));
             this.server.Hostmap.Add(".", ".");
             this.server.Handlers.Add(new BasicHandler());
+            this.server.Handlers.Add(new SourceListHandler());
             this.server.Handlers.Add(new StatusHandler());
             this.server.Handlers.Add(new ScanHandler(this));
 
@@ -321,6 +322,36 @@ namespace cz.martindobias.ScanIt
                         jsonWriter.WritePropertyName("port");
                         jsonWriter.WriteValue(Properties.Settings.Default.port);
                         jsonWriter.WriteComment("Web server listening port");
+                        jsonWriter.WriteEndObject();
+                    }
+
+                    response.Content = sb.ToString();
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        class SourceListHandler : SubstitutingFileReader
+        {
+            public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
+            {
+                if (request.Page.StartsWith("/sources"))
+                {
+                    response.ContentType = (string)SubstitutingFileReader.MimeTypes[".html"];
+                    response.ReturnCode = 200;
+                    StringBuilder sb = new StringBuilder();
+                    StringWriter sw = new StringWriter(sb);
+
+                    using (JsonWriter jsonWriter = new JsonTextWriter(sw))
+                    {
+                        jsonWriter.Formatting = Formatting.Indented;
+                        jsonWriter.WriteStartObject();
+                        foreach (string name in MainForm.twain.SourceNames)
+                        {
+                            jsonWriter.WritePropertyName(name);
+                            jsonWriter.WriteValue(System.Web.HttpUtility.UrlEncode(name));
+                        }
                         jsonWriter.WriteEndObject();
                     }
 
