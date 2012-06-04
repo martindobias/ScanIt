@@ -156,6 +156,7 @@ namespace cz.martindobias.ScanIt
             this.server = new HttpServer(new Server(Properties.Settings.Default.port));
             this.server.Hostmap.Add(".", ".");
             this.server.Handlers.Add(new BasicHandler());
+
             this.server.Handlers.Add(new SourceListHandler(this));
             this.server.Handlers.Add(new StatusHandler());
             this.server.Handlers.Add(new ScanHandler(this));
@@ -274,7 +275,7 @@ namespace cz.martindobias.ScanIt
                     int w = Properties.Settings.Default.w;
                     int h = Properties.Settings.Default.h;
                     string encode = Properties.Settings.Default.encode;
-                    try 
+                    try
                     {
                         if (request.Query.ContainsKey("source"))
                         {
@@ -287,7 +288,7 @@ namespace cz.martindobias.ScanIt
 
                         if (request.Query.ContainsKey("encode"))
                         {
-                            encode = request.Query["source"];
+                            encode = request.Query["encode"];
                             if (!"base64".Equals(encode))
                             {
                                 throw new Exception("Unknown encoding: " + encode);
@@ -299,13 +300,16 @@ namespace cz.martindobias.ScanIt
                         w = getDimension(request, w, "w");
                         h = getDimension(request, h, "h");
                     }
-                    catch (Exception e) {
+                    catch (Exception e)
+                    {
                         response.ReturnCode = 500;
                         response.Content = "Invalid URL arguments: " + e.Message;
                         return true;
                     }
 
-                    if ((source == null && "".Equals(Properties.Settings.Default.twain_source)) || ("".Equals(source)))
+                    bool testing = request.Query.ContainsKey("test") && "1".Equals(request.Query["test"]);
+
+                    if ("".Equals(source) && !testing)
                     {
                         request.Host = ".";
                         request.Page = "/noscanner.html";
@@ -315,18 +319,32 @@ namespace cz.martindobias.ScanIt
 
                     if (this.mainForm.scanSemaphore.WaitOne(0))
                     {
-                        this.mainForm.scanBitmap = null;
-                        this.mainForm.scanTarget = ScanTarget.WEB;
-                        this.mainForm.Invoke(new ScanDelegate(Scan), new object[] { source });
-
-                        DateTime startTime = DateTime.Now;
-                        TimeSpan elapsed;
-                        do
+                        if (testing)
                         {
-                            Thread.Sleep(100);
-                            elapsed = DateTime.Now.Subtract(startTime);
-                        } while (this.mainForm.scanBitmap == null && elapsed.TotalMinutes < 1);
+                            try
+                            {
+                                this.mainForm.scanBitmap = new Bitmap("./TestImage.png");
+                            }
+                            catch (Exception)
+                            {
+                                this.mainForm.scanBitmap = null;
+                            }
+                            this.mainForm.scanSemaphore.Release();
+                        }
+                        else
+                        {
+                            this.mainForm.scanBitmap = null;
+                            this.mainForm.scanTarget = ScanTarget.WEB;
+                            this.mainForm.Invoke(new ScanDelegate(Scan), new object[] { source });
 
+                            DateTime startTime = DateTime.Now;
+                            TimeSpan elapsed;
+                            do
+                            {
+                                Thread.Sleep(100);
+                                elapsed = DateTime.Now.Subtract(startTime);
+                            } while (this.mainForm.scanBitmap == null && elapsed.TotalMinutes < 1);
+                        }
 
                         if (this.mainForm.scanBitmap != null)
                         {
@@ -408,31 +426,31 @@ namespace cz.martindobias.ScanIt
                         jsonWriter.WritePropertyName("x");
                         jsonWriter.WriteValue(Properties.Settings.Default.x);
                         jsonWriter.WriteComment("The x-coordinate of the upper-left corner of the crop rectangle");
-                        
+
                         jsonWriter.WritePropertyName("y");
                         jsonWriter.WriteValue(Properties.Settings.Default.y);
                         jsonWriter.WriteComment("The y-coordinate of the upper-left corner of the crop rectangle");
-                        
+
                         jsonWriter.WritePropertyName("w");
                         jsonWriter.WriteValue(Properties.Settings.Default.w);
                         jsonWriter.WriteComment("The width of the crop rectangle");
-                        
+
                         jsonWriter.WritePropertyName("h");
                         jsonWriter.WriteValue(Properties.Settings.Default.h);
                         jsonWriter.WriteComment("The height of the crop rectangle");
-                        
+
                         jsonWriter.WritePropertyName("encode");
                         jsonWriter.WriteValue(Properties.Settings.Default.encode);
                         jsonWriter.WriteComment("Encoding setup");
-                        
+
                         jsonWriter.WritePropertyName("server_autostart");
                         jsonWriter.WriteValue(Properties.Settings.Default.server_autostart);
                         jsonWriter.WriteComment("Shall web server be started automatically");
-                        
+
                         jsonWriter.WritePropertyName("start_minimized");
                         jsonWriter.WriteValue(Properties.Settings.Default.start_minimized);
                         jsonWriter.WriteComment("Shall application start minimized");
-                        
+
                         jsonWriter.WritePropertyName("port");
                         jsonWriter.WriteValue(Properties.Settings.Default.port);
                         jsonWriter.WriteComment("Web server listening port");
@@ -487,18 +505,9 @@ namespace cz.martindobias.ScanIt
         {
             public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
             {
-                if (request.Page.StartsWith("/test"))
-                {
-                    request.Host = ".";
-                    request.Page = "/TestImage.png";
-                    return base.Process(server, request, response);
-                }
-                else
-                {
-                    request.Host = ".";
-                    request.Page = "/home.html";
-                    return base.Process(server, request, response);
-                }
+                request.Host = ".";
+                request.Page = "/home.html";
+                return base.Process(server, request, response);
             }
         }
 
