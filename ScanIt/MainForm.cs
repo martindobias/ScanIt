@@ -289,16 +289,14 @@ namespace cz.martindobias.ScanIt
                         if (request.Query.ContainsKey("encode"))
                         {
                             encode = request.Query["encode"];
-                            if (!"base64".Equals(encode))
-                            {
+                            if (!"base64".Equals(encode) && !"".Equals(encode))
                                 throw new Exception("Unknown encoding: " + encode);
-                            }
                         }
 
-                        x = getDimension(request, x, "x");
-                        y = getDimension(request, y, "y");
-                        w = getDimension(request, w, "w");
-                        h = getDimension(request, h, "h");
+                        x = ScanHandler.getDimension(request, x, "x");
+                        y = ScanHandler.getDimension(request, y, "y");
+                        w = ScanHandler.getDimension(request, w, "w");
+                        h = ScanHandler.getDimension(request, h, "h");
                     }
                     catch (Exception e)
                     {
@@ -359,13 +357,14 @@ namespace cz.martindobias.ScanIt
                                 this.mainForm.scanBitmap.Save(ms, ImageFormat.Png);
                                 if ("base64".Equals(encode))
                                 {
-                                    response.ContentType = "application/octet-stream";
+                                    response.ContentType = "text/plain";
                                     response.Encoding = "base64";
-                                    response.RawContent = Encoding.UTF7.GetBytes(Convert.ToBase64String(ms.ToArray()));
+                                    response.Content = Convert.ToBase64String(ms.ToArray());
                                 }
                                 else
                                 {
                                     response.ContentType = (string)SubstitutingFileReader.MimeTypes[".png"];
+                                    response.Encoding = null;
                                     response.RawContent = ms.ToArray();
                                 }
                             }
@@ -394,10 +393,14 @@ namespace cz.martindobias.ScanIt
             {
                 if (request.Query.ContainsKey(attribute))
                 {
-                    x = Int32.Parse(request.Query[attribute]);
-                    if (x < 0)
+                    string value = request.Query[attribute];
+                    if (!"".Equals(value))
                     {
-                        throw new Exception(attribute + " has to be positive, or zero: " + x);
+                        x = Int32.Parse(value);
+                        if (x < 0)
+                        {
+                            throw new Exception(attribute + " has to be positive, or zero: " + x);
+                        }
                     }
                 }
                 return x;

@@ -272,15 +272,11 @@ namespace RedCorona.Net {
 			        "\r\nDate: "+DateTime.Now.ToString("R")+
 			        "\r\nServer: RedCoronaEmbedded/1.0"+
 			        "\r\nConnection: "+(close ? "close" : "Keep-Alive")));
+            bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Encoding: " + (resp.Encoding == null ? "utf-8" : resp.Encoding)));
             if (resp.RawContent == null)
-                bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Encoding: utf-8" +
-                    "\r\nContent-Length: " + resp.Content.Length));
+                bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Length: " + resp.Content.Length));
             else
-            {
-                if(resp.Encoding != null)
-                    bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Encoding: " + resp.Encoding));
                 bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Length: " + resp.RawContent.Length));
-            }
 			if(resp.ContentType != null)
 				bb.Add(Encoding.UTF8.GetBytes("\r\nContent-Type: "+resp.ContentType));
 			if(req.Session != null) bb.Add(Encoding.UTF8.GetBytes("\r\nSet-Cookie: _sessid="+req.Session.ID+"; path=/"));
