@@ -48,10 +48,6 @@ namespace cz.martindobias.ScanIt
             if (this.encodingComboBox.Items.Contains(Properties.Settings.Default.encode)) this.encodingComboBox.SelectedItem = Properties.Settings.Default.encode;
             this.adfCheckBox.Checked = Properties.Settings.Default.useADF;
             
-            this.orientationComboBox.Items.Add(TwainDotNet.TwainNative.Orientation.Portrait);
-            this.orientationComboBox.Items.Add(TwainDotNet.TwainNative.Orientation.Landscape);
-            this.orientationComboBox.SelectedItem = Properties.Settings.Default.orientation;
-
             if (this.dpiComboBox.Items.Contains("" + Properties.Settings.Default.dpi)) this.dpiComboBox.SelectedItem = "" + Properties.Settings.Default.dpi;
             else this.dpiComboBox.SelectedItem = "300";
 
@@ -251,15 +247,13 @@ namespace cz.martindobias.ScanIt
                           {
                               ShowTwainUI = false,
                               Resolution = new ResolutionSettings(),
-                              Page = new PageSettings(),
                               AbortWhenNoPaperDetectable = Properties.Settings.Default.useADF,
                               ShouldTransferAllPages = Properties.Settings.Default.useADF,
-                              //UseAutoFeeder = Properties.Settings.Default.useADF,
+                              UseAutoFeeder = Properties.Settings.Default.useADF,
                               UseDocumentFeeder = Properties.Settings.Default.useADF
                           };
             scanSettings.Resolution.ColourSetting = Properties.Settings.Default.colour;
             scanSettings.Resolution.Dpi = Properties.Settings.Default.dpi;
-            scanSettings.Page.Orientation = Properties.Settings.Default.orientation;
 
             return scanSettings;
         }
@@ -591,11 +585,6 @@ namespace cz.martindobias.ScanIt
                 Properties.Settings.Default.dpi = 300;
                 this.dpiComboBox.SelectedItem = "300";
             }
-        }
-
-        private void orientationComboBox_SelectedValueChanged(object sender, EventArgs e)
-        {
-            Properties.Settings.Default.orientation = (TwainDotNet.TwainNative.Orientation)this.orientationComboBox.SelectedItem;
         }
 
         private void adfCheckBox_CheckedChanged(object sender, EventArgs e)

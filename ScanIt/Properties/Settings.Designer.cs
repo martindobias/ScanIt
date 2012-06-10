@@ -157,18 +157,6 @@ namespace cz.martindobias.ScanIt.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Default")]
-        public global::TwainDotNet.TwainNative.Orientation orientation {
-            get {
-                return ((global::TwainDotNet.TwainNative.Orientation)(this["orientation"]));
-            }
-            set {
-                this["orientation"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("300")]
         public int dpi {
             get {
