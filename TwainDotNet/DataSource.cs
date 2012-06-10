@@ -195,7 +195,18 @@ namespace TwainDotNet
         {
             OpenSource();
 
-            if (settings.AbortWhenNoPaperDetectable && !PaperDetectable)
+            bool pd = false;
+            try
+            {
+                pd = PaperDetectable;
+            }
+            catch (Exception)
+            {
+                settings.AbortWhenNoPaperDetectable = false;
+                settings.UseAutoFeeder = null;
+                settings.UseDocumentFeeder = null;
+            }
+            if (settings.AbortWhenNoPaperDetectable && !pd)
                 throw new FeederEmptyException();
 
             // Set whether or not to show progress window
