@@ -243,17 +243,22 @@ namespace cz.martindobias.ScanIt
 
         static private ScanSettings CreateDefaultSettings()
         {
+            return CreateDefaultSettings(Properties.Settings.Default.dpi, Properties.Settings.Default.colour, Properties.Settings.Default.useADF);
+        }
+
+        static private ScanSettings CreateDefaultSettings(int dpi, ColourSetting colour, bool adf)
+        {
             ScanSettings scanSettings = new ScanSettings
-                          {
-                              ShowTwainUI = false,
-                              Resolution = new ResolutionSettings(),
-                              AbortWhenNoPaperDetectable = Properties.Settings.Default.useADF,
-                              ShouldTransferAllPages = Properties.Settings.Default.useADF,
-                              UseAutoFeeder = Properties.Settings.Default.useADF,
-                              UseDocumentFeeder = Properties.Settings.Default.useADF
-                          };
-            scanSettings.Resolution.ColourSetting = Properties.Settings.Default.colour;
-            scanSettings.Resolution.Dpi = Properties.Settings.Default.dpi;
+            {
+                ShowTwainUI = false,
+                Resolution = new ResolutionSettings(),
+                AbortWhenNoPaperDetectable = adf,
+                ShouldTransferAllPages = adf,
+                UseAutoFeeder = adf,
+                UseDocumentFeeder = adf
+            };
+            scanSettings.Resolution.ColourSetting = colour;
+            scanSettings.Resolution.Dpi = dpi;
 
             return scanSettings;
         }
@@ -273,11 +278,11 @@ namespace cz.martindobias.ScanIt
                 this.mainForm = mainForm;
             }
 
-            delegate void ScanDelegate(string twain_source);
-            void Scan(string twain_source)
+            delegate void ScanDelegate(string twain_source, int dpi, ColourSetting colour, bool adf);
+            void Scan(string twain_source, int dpi, ColourSetting colour, bool adf)
             {
                 this.mainForm.twain.SelectSource(twain_source == null ? Properties.Settings.Default.twain_source : twain_source);
-                ScanSettings settings = MainForm.CreateDefaultSettings();
+                ScanSettings settings = MainForm.CreateDefaultSettings(dpi, colour, adf);
                 this.mainForm.twain.StartScanning(settings);
             }
 
@@ -291,6 +296,10 @@ namespace cz.martindobias.ScanIt
                     int w = Properties.Settings.Default.w;
                     int h = Properties.Settings.Default.h;
                     string encode = Properties.Settings.Default.encode;
+                    int dpi = Properties.Settings.Default.dpi;
+                    bool adf = Properties.Settings.Default.useADF;
+                    ColourSetting colour = Properties.Settings.Default.colour;
+
                     try
                     {
                         if (request.Query.ContainsKey("source"))
@@ -309,10 +318,25 @@ namespace cz.martindobias.ScanIt
                                 throw new Exception("Unknown encoding: " + encode);
                         }
 
-                        x = ScanHandler.getDimension(request, x, "x");
-                        y = ScanHandler.getDimension(request, y, "y");
-                        w = ScanHandler.getDimension(request, w, "w");
-                        h = ScanHandler.getDimension(request, h, "h");
+                        x = ScanHandler.getNumber(request, x, "x");
+                        y = ScanHandler.getNumber(request, y, "y");
+                        w = ScanHandler.getNumber(request, w, "w");
+                        h = ScanHandler.getNumber(request, h, "h");
+
+                        dpi = ScanHandler.getNumber(request, dpi, "dpi");
+                        if (!this.mainForm.dpiComboBox.Items.Contains("" + dpi))
+                            throw new Exception("Unsupported DPI value: " + dpi);
+
+                        adf = request.Query.ContainsKey("adf") ? "1".Equals(request.Query["adf"]) : adf;
+
+                        if (request.Query.ContainsKey("colour"))
+                        {
+                            string col = request.Query["colour"];
+                            if ("full".Equals(col)) colour = ColourSetting.Colour;
+                            else if ("greyscale".Equals(col)) colour = ColourSetting.GreyScale;
+                            else if ("blackandwhite".Equals(col)) colour = ColourSetting.BlackAndWhite;
+                            else throw new Exception("Unknown colour settings: " + col);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -349,7 +373,7 @@ namespace cz.martindobias.ScanIt
                         {
                             this.mainForm.scanBitmap = null;
                             this.mainForm.scanTarget = ScanTarget.WEB;
-                            this.mainForm.Invoke(new ScanDelegate(Scan), new object[] { source });
+                            this.mainForm.Invoke(new ScanDelegate(Scan), new object[] { source, dpi, colour, adf });
 
                             DateTime startTime = DateTime.Now;
                             TimeSpan elapsed;
@@ -405,7 +429,7 @@ namespace cz.martindobias.ScanIt
                 return false;
             }
 
-            private static int getDimension(HttpRequest request, int x, string attribute)
+            private static int getNumber(HttpRequest request, int x, string attribute)
             {
                 if (request.Query.ContainsKey(attribute))
                 {
@@ -473,6 +497,18 @@ namespace cz.martindobias.ScanIt
                         jsonWriter.WritePropertyName("port");
                         jsonWriter.WriteValue(Properties.Settings.Default.port);
                         jsonWriter.WriteComment("Web server listening port");
+
+                        jsonWriter.WritePropertyName("dpi");
+                        jsonWriter.WriteValue(Properties.Settings.Default.dpi);
+                        jsonWriter.WriteComment("DPI");
+
+                        jsonWriter.WritePropertyName("colour");
+                        jsonWriter.WriteValue(Properties.Settings.Default.colour == ColourSetting.Colour ? "full" : Properties.Settings.Default.colour == ColourSetting.GreyScale ? "greyscale" : "blackandwhite");
+                        jsonWriter.WriteComment("Colouring setup");
+
+                        jsonWriter.WritePropertyName("adf");
+                        jsonWriter.WriteValue(Properties.Settings.Default.useADF);
+                        jsonWriter.WriteComment("Shall ADF be used?");
                         jsonWriter.WriteEndObject();
                     }
 
