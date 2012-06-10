@@ -117,7 +117,14 @@ namespace TwainDotNet
             {
                 int dpi = scanSettings.Resolution.Dpi.Value;
                 Capability.SetBasicCapability(Capabilities.XResolution, dpi, TwainType.Fix32, _applicationId, SourceId);
-                Capability.SetBasicCapability(Capabilities.YResolution, dpi, TwainType.Fix32, _applicationId, SourceId);
+                try
+                {
+                    Capability.SetBasicCapability(Capabilities.YResolution, dpi, TwainType.Fix32, _applicationId, SourceId);
+                }
+                catch (Exception)
+                {
+                    // some scanners do not support YResolution change
+                }
             }
         }
 

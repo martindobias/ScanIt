@@ -431,8 +431,7 @@
             "150",
             "200",
             "300",
-            "600",
-            "1200"});
+            "600"});
             this.dpiComboBox.Location = new System.Drawing.Point(15, 143);
             this.dpiComboBox.Name = "dpiComboBox";
             this.dpiComboBox.Size = new System.Drawing.Size(172, 21);

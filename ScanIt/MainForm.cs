@@ -250,7 +250,16 @@ namespace cz.martindobias.ScanIt
             ScanSettings scanSettings = new ScanSettings
                           {
                               ShowTwainUI = false,
+                              Resolution = new ResolutionSettings(),
+                              Page = new PageSettings(),
+                              AbortWhenNoPaperDetectable = Properties.Settings.Default.useADF,
+                              ShouldTransferAllPages = Properties.Settings.Default.useADF,
+                              //UseAutoFeeder = Properties.Settings.Default.useADF,
+                              UseDocumentFeeder = Properties.Settings.Default.useADF
                           };
+            scanSettings.Resolution.ColourSetting = Properties.Settings.Default.colour;
+            scanSettings.Resolution.Dpi = Properties.Settings.Default.dpi;
+            scanSettings.Page.Orientation = Properties.Settings.Default.orientation;
 
             return scanSettings;
         }
