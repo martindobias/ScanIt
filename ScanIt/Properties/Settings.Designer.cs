@@ -130,5 +130,53 @@ namespace cz.martindobias.ScanIt.Properties {
                 this["encode"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool useADF {
+            get {
+                return ((bool)(this["useADF"]));
+            }
+            set {
+                this["useADF"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Colour")]
+        public global::TwainDotNet.ColourSetting colour {
+            get {
+                return ((global::TwainDotNet.ColourSetting)(this["colour"]));
+            }
+            set {
+                this["colour"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Default")]
+        public global::TwainDotNet.TwainNative.Orientation orientation {
+            get {
+                return ((global::TwainDotNet.TwainNative.Orientation)(this["orientation"]));
+            }
+            set {
+                this["orientation"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("300")]
+        public int dpi {
+            get {
+                return ((int)(this["dpi"]));
+            }
+            set {
+                this["dpi"] = value;
+            }
+        }
     }
 }

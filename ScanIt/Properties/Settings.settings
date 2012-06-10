@@ -29,5 +29,17 @@
     <Setting Name="encode" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="useADF" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="colour" Type="TwainDotNet.ColourSetting" Scope="User">
+      <Value Profile="(Default)">Colour</Value>
+    </Setting>
+    <Setting Name="orientation" Type="TwainDotNet.TwainNative.Orientation" Scope="User">
+      <Value Profile="(Default)">Default</Value>
+    </Setting>
+    <Setting Name="dpi" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">300</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

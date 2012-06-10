@@ -46,6 +46,18 @@ namespace cz.martindobias.ScanIt
             this.wUpDown.Value = Properties.Settings.Default.w;
             this.hUpDown.Value = Properties.Settings.Default.h;
             if (this.encodingComboBox.Items.Contains(Properties.Settings.Default.encode)) this.encodingComboBox.SelectedItem = Properties.Settings.Default.encode;
+            this.adfCheckBox.Checked = Properties.Settings.Default.useADF;
+            
+            this.orientationComboBox.Items.Add(TwainDotNet.TwainNative.Orientation.Portrait);
+            this.orientationComboBox.Items.Add(TwainDotNet.TwainNative.Orientation.Landscape);
+            this.orientationComboBox.SelectedItem = Properties.Settings.Default.orientation;
+
+            if (this.dpiComboBox.Items.Contains("" + Properties.Settings.Default.dpi)) this.dpiComboBox.SelectedItem = "" + Properties.Settings.Default.dpi;
+            else this.dpiComboBox.SelectedItem = "300";
+
+            if (Properties.Settings.Default.colour == ColourSetting.BlackAndWhite) this.blackAndWhiteRadioButton.Checked = true;
+            else if (Properties.Settings.Default.colour == ColourSetting.GreyScale) this.greyscaleRadioButton.Checked = true;
+            else this.colourRadioButton.Checked = true;
 
             this.sourceComboBox.Items.Add("");
             bool processed = false;
@@ -220,16 +232,17 @@ namespace cz.martindobias.ScanIt
 
         private void scanButton_Click(object sender, EventArgs e)
         {
-            if (!"".Equals(Properties.Settings.Default.twain_source) && this.scanSemaphore.WaitOne(0))
-            {
-                this.scanTarget = ScanTarget.APP;
-                this.twain.SelectSource(Properties.Settings.Default.twain_source);
-                this.twain.StartScanning(MainForm.CreateDefaultSettings());
-            }
-            else
-            {
-                MessageBox.Show("Scanner in use, try to scan later or restart application in case of out-of-sync communication to scanner", "Scanner in use", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
-            }
+            if (!"".Equals(Properties.Settings.Default.twain_source))
+                if (this.scanSemaphore.WaitOne(0))
+                {
+                    this.scanTarget = ScanTarget.APP;
+                    this.twain.SelectSource(Properties.Settings.Default.twain_source);
+                    this.twain.StartScanning(MainForm.CreateDefaultSettings());
+                }
+                else
+                {
+                    MessageBox.Show("Scanner in use, try to scan later or restart application in case of out-of-sync communication to scanner", "Scanner in use", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+                }
         }
 
         static private ScanSettings CreateDefaultSettings()
@@ -517,7 +530,8 @@ namespace cz.martindobias.ScanIt
         enum ScanTarget
         {
             APP,
-            WEB
+            WEB,
+            ZIP
         }
 
         private void xUpDown_ValueChanged(object sender, EventArgs e)
@@ -555,6 +569,36 @@ namespace cz.martindobias.ScanIt
         private void encodingComboBox_SelectedValueChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.encode = (string)this.encodingComboBox.SelectedItem;
+        }
+
+        private void dpiComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                Properties.Settings.Default.dpi = Int32.Parse((string)this.dpiComboBox.SelectedItem);
+            }
+            catch (Exception)
+            {
+                Properties.Settings.Default.dpi = 300;
+                this.dpiComboBox.SelectedItem = "300";
+            }
+        }
+
+        private void orientationComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.orientation = (TwainDotNet.TwainNative.Orientation)this.orientationComboBox.SelectedItem;
+        }
+
+        private void adfCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.useADF = this.adfCheckBox.Checked;
+        }
+
+        private void colourRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.colourRadioButton.Checked) Properties.Settings.Default.colour = ColourSetting.Colour;
+            else if (this.greyscaleRadioButton.Checked) Properties.Settings.Default.colour = ColourSetting.GreyScale;
+            else Properties.Settings.Default.colour = ColourSetting.BlackAndWhite;
         }
     }
 }

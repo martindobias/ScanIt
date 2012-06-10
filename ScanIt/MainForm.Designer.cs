@@ -56,6 +56,14 @@
             this.wUpDown = new System.Windows.Forms.NumericUpDown();
             this.encodingLabel = new System.Windows.Forms.Label();
             this.encodingComboBox = new System.Windows.Forms.ComboBox();
+            this.blackAndWhiteRadioButton = new System.Windows.Forms.RadioButton();
+            this.greyscaleRadioButton = new System.Windows.Forms.RadioButton();
+            this.colourRadioButton = new System.Windows.Forms.RadioButton();
+            this.adfCheckBox = new System.Windows.Forms.CheckBox();
+            this.orientationComboBox = new System.Windows.Forms.ComboBox();
+            this.orientationLabel = new System.Windows.Forms.Label();
+            this.dpiLabel = new System.Windows.Forms.Label();
+            this.dpiComboBox = new System.Windows.Forms.ComboBox();
             this.statusStrip.SuspendLayout();
             this.trayContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
@@ -92,7 +100,7 @@
             // 
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.serverStatusText});
-            this.statusStrip.Location = new System.Drawing.Point(0, 238);
+            this.statusStrip.Location = new System.Drawing.Point(0, 301);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.statusStrip.Size = new System.Drawing.Size(508, 24);
@@ -159,7 +167,7 @@
             // 
             // startServerButton
             // 
-            this.startServerButton.Location = new System.Drawing.Point(15, 214);
+            this.startServerButton.Location = new System.Drawing.Point(15, 265);
             this.startServerButton.Name = "startServerButton";
             this.startServerButton.Size = new System.Drawing.Size(172, 23);
             this.startServerButton.TabIndex = 6;
@@ -169,7 +177,7 @@
             // 
             // quitButton
             // 
-            this.quitButton.Location = new System.Drawing.Point(206, 214);
+            this.quitButton.Location = new System.Drawing.Point(206, 265);
             this.quitButton.Name = "quitButton";
             this.quitButton.Size = new System.Drawing.Size(127, 23);
             this.quitButton.TabIndex = 7;
@@ -180,7 +188,7 @@
             // pictureBox
             // 
             this.pictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pictureBox.Location = new System.Drawing.Point(349, 12);
+            this.pictureBox.Location = new System.Drawing.Point(349, 35);
             this.pictureBox.Name = "pictureBox";
             this.pictureBox.Size = new System.Drawing.Size(147, 223);
             this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -222,7 +230,7 @@
             // scanButton
             // 
             this.scanButton.Enabled = false;
-            this.scanButton.Location = new System.Drawing.Point(411, 203);
+            this.scanButton.Location = new System.Drawing.Point(411, 226);
             this.scanButton.Name = "scanButton";
             this.scanButton.Size = new System.Drawing.Size(75, 23);
             this.scanButton.TabIndex = 11;
@@ -232,7 +240,7 @@
             // 
             // xUpDown
             // 
-            this.xUpDown.Location = new System.Drawing.Point(15, 75);
+            this.xUpDown.Location = new System.Drawing.Point(15, 65);
             this.xUpDown.Maximum = new decimal(new int[] {
             100000000,
             0,
@@ -245,7 +253,7 @@
             // 
             // yUpDown
             // 
-            this.yUpDown.Location = new System.Drawing.Point(104, 75);
+            this.yUpDown.Location = new System.Drawing.Point(104, 65);
             this.yUpDown.Maximum = new decimal(new int[] {
             100000000,
             0,
@@ -259,7 +267,7 @@
             // xLabel
             // 
             this.xLabel.AutoSize = true;
-            this.xLabel.Location = new System.Drawing.Point(12, 59);
+            this.xLabel.Location = new System.Drawing.Point(12, 49);
             this.xLabel.Name = "xLabel";
             this.xLabel.Size = new System.Drawing.Size(14, 13);
             this.xLabel.TabIndex = 14;
@@ -268,7 +276,7 @@
             // yLabel
             // 
             this.yLabel.AutoSize = true;
-            this.yLabel.Location = new System.Drawing.Point(101, 59);
+            this.yLabel.Location = new System.Drawing.Point(101, 49);
             this.yLabel.Name = "yLabel";
             this.yLabel.Size = new System.Drawing.Size(14, 13);
             this.yLabel.TabIndex = 15;
@@ -277,7 +285,7 @@
             // hLabel
             // 
             this.hLabel.AutoSize = true;
-            this.hLabel.Location = new System.Drawing.Point(101, 98);
+            this.hLabel.Location = new System.Drawing.Point(101, 88);
             this.hLabel.Name = "hLabel";
             this.hLabel.Size = new System.Drawing.Size(36, 13);
             this.hLabel.TabIndex = 19;
@@ -286,7 +294,7 @@
             // wLabel
             // 
             this.wLabel.AutoSize = true;
-            this.wLabel.Location = new System.Drawing.Point(12, 98);
+            this.wLabel.Location = new System.Drawing.Point(12, 88);
             this.wLabel.Name = "wLabel";
             this.wLabel.Size = new System.Drawing.Size(32, 13);
             this.wLabel.TabIndex = 18;
@@ -294,7 +302,7 @@
             // 
             // hUpDown
             // 
-            this.hUpDown.Location = new System.Drawing.Point(104, 114);
+            this.hUpDown.Location = new System.Drawing.Point(104, 104);
             this.hUpDown.Maximum = new decimal(new int[] {
             100000000,
             0,
@@ -307,7 +315,7 @@
             // 
             // wUpDown
             // 
-            this.wUpDown.Location = new System.Drawing.Point(15, 114);
+            this.wUpDown.Location = new System.Drawing.Point(15, 104);
             this.wUpDown.Maximum = new decimal(new int[] {
             100000000,
             0,
@@ -321,7 +329,7 @@
             // encodingLabel
             // 
             this.encodingLabel.AutoSize = true;
-            this.encodingLabel.Location = new System.Drawing.Point(15, 155);
+            this.encodingLabel.Location = new System.Drawing.Point(15, 212);
             this.encodingLabel.Name = "encodingLabel";
             this.encodingLabel.Size = new System.Drawing.Size(44, 13);
             this.encodingLabel.TabIndex = 20;
@@ -334,17 +342,116 @@
             this.encodingComboBox.Items.AddRange(new object[] {
             "",
             "base64"});
-            this.encodingComboBox.Location = new System.Drawing.Point(15, 172);
+            this.encodingComboBox.Location = new System.Drawing.Point(15, 229);
             this.encodingComboBox.Name = "encodingComboBox";
             this.encodingComboBox.Size = new System.Drawing.Size(172, 21);
             this.encodingComboBox.TabIndex = 21;
             this.encodingComboBox.SelectedValueChanged += new System.EventHandler(this.encodingComboBox_SelectedValueChanged);
             // 
+            // blackAndWhiteRadioButton
+            // 
+            this.blackAndWhiteRadioButton.AutoSize = true;
+            this.blackAndWhiteRadioButton.Location = new System.Drawing.Point(206, 229);
+            this.blackAndWhiteRadioButton.Name = "blackAndWhiteRadioButton";
+            this.blackAndWhiteRadioButton.Size = new System.Drawing.Size(88, 17);
+            this.blackAndWhiteRadioButton.TabIndex = 22;
+            this.blackAndWhiteRadioButton.TabStop = true;
+            this.blackAndWhiteRadioButton.Text = "black && white";
+            this.blackAndWhiteRadioButton.UseVisualStyleBackColor = true;
+            this.blackAndWhiteRadioButton.CheckedChanged += new System.EventHandler(this.colourRadioButton_CheckedChanged);
+            // 
+            // greyscaleRadioButton
+            // 
+            this.greyscaleRadioButton.AutoSize = true;
+            this.greyscaleRadioButton.Location = new System.Drawing.Point(206, 206);
+            this.greyscaleRadioButton.Name = "greyscaleRadioButton";
+            this.greyscaleRadioButton.Size = new System.Drawing.Size(70, 17);
+            this.greyscaleRadioButton.TabIndex = 23;
+            this.greyscaleRadioButton.TabStop = true;
+            this.greyscaleRadioButton.Text = "greyscale";
+            this.greyscaleRadioButton.UseVisualStyleBackColor = true;
+            this.greyscaleRadioButton.CheckedChanged += new System.EventHandler(this.colourRadioButton_CheckedChanged);
+            // 
+            // colourRadioButton
+            // 
+            this.colourRadioButton.AutoSize = true;
+            this.colourRadioButton.Location = new System.Drawing.Point(206, 183);
+            this.colourRadioButton.Name = "colourRadioButton";
+            this.colourRadioButton.Size = new System.Drawing.Size(54, 17);
+            this.colourRadioButton.TabIndex = 24;
+            this.colourRadioButton.TabStop = true;
+            this.colourRadioButton.Text = "colour";
+            this.colourRadioButton.UseVisualStyleBackColor = true;
+            this.colourRadioButton.CheckedChanged += new System.EventHandler(this.colourRadioButton_CheckedChanged);
+            // 
+            // adfCheckBox
+            // 
+            this.adfCheckBox.AutoSize = true;
+            this.adfCheckBox.Location = new System.Drawing.Point(206, 147);
+            this.adfCheckBox.Name = "adfCheckBox";
+            this.adfCheckBox.Size = new System.Drawing.Size(67, 17);
+            this.adfCheckBox.TabIndex = 25;
+            this.adfCheckBox.Text = "use ADF";
+            this.adfCheckBox.UseVisualStyleBackColor = true;
+            this.adfCheckBox.CheckedChanged += new System.EventHandler(this.adfCheckBox_CheckedChanged);
+            // 
+            // orientationComboBox
+            // 
+            this.orientationComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.orientationComboBox.FormattingEnabled = true;
+            this.orientationComboBox.Location = new System.Drawing.Point(15, 188);
+            this.orientationComboBox.Name = "orientationComboBox";
+            this.orientationComboBox.Size = new System.Drawing.Size(172, 21);
+            this.orientationComboBox.TabIndex = 27;
+            this.orientationComboBox.SelectedValueChanged += new System.EventHandler(this.orientationComboBox_SelectedValueChanged);
+            // 
+            // orientationLabel
+            // 
+            this.orientationLabel.AutoSize = true;
+            this.orientationLabel.Location = new System.Drawing.Point(15, 171);
+            this.orientationLabel.Name = "orientationLabel";
+            this.orientationLabel.Size = new System.Drawing.Size(58, 13);
+            this.orientationLabel.TabIndex = 26;
+            this.orientationLabel.Text = "Orientation";
+            // 
+            // dpiLabel
+            // 
+            this.dpiLabel.AutoSize = true;
+            this.dpiLabel.Location = new System.Drawing.Point(15, 127);
+            this.dpiLabel.Name = "dpiLabel";
+            this.dpiLabel.Size = new System.Drawing.Size(25, 13);
+            this.dpiLabel.TabIndex = 29;
+            this.dpiLabel.Text = "DPI";
+            // 
+            // dpiComboBox
+            // 
+            this.dpiComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.dpiComboBox.FormattingEnabled = true;
+            this.dpiComboBox.Items.AddRange(new object[] {
+            "150",
+            "200",
+            "300",
+            "600",
+            "1200"});
+            this.dpiComboBox.Location = new System.Drawing.Point(15, 143);
+            this.dpiComboBox.Name = "dpiComboBox";
+            this.dpiComboBox.Size = new System.Drawing.Size(172, 21);
+            this.dpiComboBox.TabIndex = 30;
+            this.dpiComboBox.SelectedValueChanged += new System.EventHandler(this.dpiComboBox_SelectedValueChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(508, 262);
+            this.ClientSize = new System.Drawing.Size(508, 325);
+            this.Controls.Add(this.dpiComboBox);
+            this.Controls.Add(this.dpiLabel);
+            this.Controls.Add(this.orientationComboBox);
+            this.Controls.Add(this.orientationLabel);
+            this.Controls.Add(this.adfCheckBox);
+            this.Controls.Add(this.colourRadioButton);
+            this.Controls.Add(this.greyscaleRadioButton);
+            this.Controls.Add(this.blackAndWhiteRadioButton);
             this.Controls.Add(this.encodingComboBox);
             this.Controls.Add(this.encodingLabel);
             this.Controls.Add(this.hLabel);
@@ -415,6 +522,14 @@
         private System.Windows.Forms.NumericUpDown wUpDown;
         private System.Windows.Forms.Label encodingLabel;
         private System.Windows.Forms.ComboBox encodingComboBox;
+        private System.Windows.Forms.RadioButton blackAndWhiteRadioButton;
+        private System.Windows.Forms.RadioButton greyscaleRadioButton;
+        private System.Windows.Forms.RadioButton colourRadioButton;
+        private System.Windows.Forms.CheckBox adfCheckBox;
+        private System.Windows.Forms.ComboBox orientationComboBox;
+        private System.Windows.Forms.Label orientationLabel;
+        private System.Windows.Forms.Label dpiLabel;
+        private System.Windows.Forms.ComboBox dpiComboBox;
     }
 }
 
