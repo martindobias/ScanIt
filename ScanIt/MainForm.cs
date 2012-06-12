@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using RedCorona.Net;
 using TwainDotNet;
 using TwainDotNet.WinFroms;
+using Ionic.Zip;
 
 namespace cz.martindobias.ScanIt
 {
@@ -22,9 +23,9 @@ namespace cz.martindobias.ScanIt
         private bool loaded = false;
         Twain twain = null;
         Semaphore scanSemaphore = new Semaphore(1, 1, "ScanIt_scanSemaphore");
-        Bitmap scanBitmap = null;
+        List<Bitmap> scanData = new List<Bitmap>();
+        Boolean dataReady = false;
         ScanTarget scanTarget;
-
 
         public MainForm()
         {
@@ -47,7 +48,7 @@ namespace cz.martindobias.ScanIt
             this.hUpDown.Value = Properties.Settings.Default.h;
             if (this.encodingComboBox.Items.Contains(Properties.Settings.Default.encode)) this.encodingComboBox.SelectedItem = Properties.Settings.Default.encode;
             this.adfCheckBox.Checked = Properties.Settings.Default.useADF;
-            
+
             if (this.dpiComboBox.Items.Contains("" + Properties.Settings.Default.dpi)) this.dpiComboBox.SelectedItem = "" + Properties.Settings.Default.dpi;
             else this.dpiComboBox.SelectedItem = "300";
 
@@ -77,6 +78,7 @@ namespace cz.martindobias.ScanIt
 
         void ScanningComplete(object sender, ScanningCompleteEventArgs e)
         {
+            this.dataReady = true;
             this.scanSemaphore.Release();
         }
 
@@ -102,7 +104,7 @@ namespace cz.martindobias.ScanIt
                 }
                 else if (this.scanTarget == ScanTarget.WEB)
                 {
-                    this.scanBitmap = e.Image;
+                    this.scanData.Add(e.Image);
                 }
             }
         }
@@ -232,8 +234,29 @@ namespace cz.martindobias.ScanIt
                 if (this.scanSemaphore.WaitOne(0))
                 {
                     this.scanTarget = ScanTarget.APP;
+                    this.scanData.Clear();
+                    this.dataReady = false;
                     this.twain.SelectSource(Properties.Settings.Default.twain_source);
-                    this.twain.StartScanning(MainForm.CreateDefaultSettings());
+                    ScanSettings settings = MainForm.CreateDefaultSettings();
+                    try
+                    {
+                        this.twain.StartScanning(settings);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (Properties.Settings.Default.useADF)
+                        {
+                            settings.AbortWhenNoPaperDetectable = false;
+                            settings.ShouldTransferAllPages = false;
+                            settings.UseAutoFeeder = false;
+                            settings.UseDocumentFeeder = false;
+                            this.twain.StartScanning(settings);
+                        }
+                        else
+                        {
+                            throw ex;
+                        }
+                    }
                 }
                 else
                 {
@@ -283,7 +306,26 @@ namespace cz.martindobias.ScanIt
             {
                 this.mainForm.twain.SelectSource(twain_source == null ? Properties.Settings.Default.twain_source : twain_source);
                 ScanSettings settings = MainForm.CreateDefaultSettings(dpi, colour, adf);
-                this.mainForm.twain.StartScanning(settings);
+                this.mainForm.scanData.Clear();
+                try
+                {
+                    this.mainForm.twain.StartScanning(settings);
+                }
+                catch (Exception ex)
+                {
+                    if (Properties.Settings.Default.useADF)
+                    {
+                        settings.AbortWhenNoPaperDetectable = false;
+                        settings.ShouldTransferAllPages = false;
+                        settings.UseAutoFeeder = false;
+                        settings.UseDocumentFeeder = false;
+                        this.mainForm.twain.StartScanning(settings);
+                    }
+                    else
+                    {
+                        throw ex;
+                    }
+                }
             }
 
             public override bool Process(HttpServer server, HttpRequest request, HttpResponse response)
@@ -357,22 +399,24 @@ namespace cz.martindobias.ScanIt
 
                     if (this.mainForm.scanSemaphore.WaitOne(0))
                     {
+                        this.mainForm.scanData.Clear();
+
                         if (testing)
                         {
                             try
                             {
-                                this.mainForm.scanBitmap = new Bitmap("./TestImage.png");
+                                this.mainForm.scanData.Add(new Bitmap("./TestImage.png"));
                             }
                             catch (Exception)
                             {
-                                this.mainForm.scanBitmap = null;
+                                // left blank intentionally
                             }
                             this.mainForm.scanSemaphore.Release();
                         }
                         else
                         {
-                            this.mainForm.scanBitmap = null;
                             this.mainForm.scanTarget = ScanTarget.WEB;
+                            this.mainForm.dataReady = false;
                             this.mainForm.Invoke(new ScanDelegate(Scan), new object[] { source, dpi, colour, adf });
 
                             DateTime startTime = DateTime.Now;
@@ -381,20 +425,47 @@ namespace cz.martindobias.ScanIt
                             {
                                 Thread.Sleep(100);
                                 elapsed = DateTime.Now.Subtract(startTime);
-                            } while (this.mainForm.scanBitmap == null && elapsed.TotalMinutes < 1);
+                            } while (!this.mainForm.dataReady && elapsed.TotalMinutes < 5);
                         }
 
-                        if (this.mainForm.scanBitmap != null)
+                        if (this.mainForm.dataReady && this.mainForm.scanData.Count > 0)
                         {
                             response.ReturnCode = 200;
                             using (MemoryStream ms = new MemoryStream())
                             {
-                                Rectangle r = MainForm.getRectangle(this.mainForm.scanBitmap, x, y, w, h);
-                                if (!r.IsEmpty)
+                                if (!adf)
                                 {
-                                    this.mainForm.scanBitmap = this.mainForm.scanBitmap.Clone(r, this.mainForm.scanBitmap.PixelFormat);
+                                    Bitmap b = this.mainForm.scanData.First();
+                                    Rectangle r = MainForm.getRectangle(b, x, y, w, h);
+                                    if (!r.IsEmpty)
+                                    {
+                                        b = b.Clone(r, b.PixelFormat);
+                                    }
+                                    b.Save(ms, ImageFormat.Png);
                                 }
-                                this.mainForm.scanBitmap.Save(ms, ImageFormat.Png);
+                                else
+                                {
+                                    using (ZipFile zip = new ZipFile())
+                                    {
+                                        int count = 1;
+                                        foreach (Bitmap b in this.mainForm.scanData)
+                                        {
+                                            Bitmap bt = b;
+                                            Rectangle r = MainForm.getRectangle(bt, x, y, w, h);
+                                            if (!r.IsEmpty)
+                                            {
+                                                bt = bt.Clone(r, bt.PixelFormat);
+                                            }
+
+                                            using(MemoryStream mst = new MemoryStream()) {
+                                                bt.Save(mst, ImageFormat.Png);
+                                                zip.AddEntry("" + count++ + ".png", mst.ToArray());
+                                            }
+                                        }
+                                        zip.Save(ms);
+                                    }
+                                }
+
                                 if ("base64".Equals(encode))
                                 {
                                     response.ContentType = "text/plain";
@@ -403,7 +474,7 @@ namespace cz.martindobias.ScanIt
                                 }
                                 else
                                 {
-                                    response.ContentType = (string)SubstitutingFileReader.MimeTypes[".png"];
+                                    response.ContentType = adf ? "application/octet-stream" : (string)SubstitutingFileReader.MimeTypes[".png"];
                                     response.Encoding = null;
                                     response.RawContent = ms.ToArray();
                                 }
@@ -569,8 +640,7 @@ namespace cz.martindobias.ScanIt
         enum ScanTarget
         {
             APP,
-            WEB,
-            ZIP
+            WEB
         }
 
         private void xUpDown_ValueChanged(object sender, EventArgs e)
