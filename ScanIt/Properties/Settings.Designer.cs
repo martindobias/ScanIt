@@ -166,5 +166,17 @@ namespace cz.martindobias.ScanIt.Properties {
                 this["dpi"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool pdf {
+            get {
+                return ((bool)(this["pdf"]));
+            }
+            set {
+                this["pdf"] = value;
+            }
+        }
     }
 }

@@ -14,6 +14,8 @@ using RedCorona.Net;
 using TwainDotNet;
 using TwainDotNet.WinFroms;
 using Ionic.Zip;
+using sharpPDF;
+using sharpPDF.Elements;
 
 namespace cz.martindobias.ScanIt
 {
@@ -48,6 +50,7 @@ namespace cz.martindobias.ScanIt
             this.hUpDown.Value = Properties.Settings.Default.h;
             if (this.encodingComboBox.Items.Contains(Properties.Settings.Default.encode)) this.encodingComboBox.SelectedItem = Properties.Settings.Default.encode;
             this.adfCheckBox.Checked = Properties.Settings.Default.useADF;
+            this.pdfCheckBox.Checked = Properties.Settings.Default.pdf;
 
             if (this.dpiComboBox.Items.Contains("" + Properties.Settings.Default.dpi)) this.dpiComboBox.SelectedItem = "" + Properties.Settings.Default.dpi;
             else this.dpiComboBox.SelectedItem = "300";
@@ -340,6 +343,7 @@ namespace cz.martindobias.ScanIt
                     string encode = Properties.Settings.Default.encode;
                     int dpi = Properties.Settings.Default.dpi;
                     bool adf = Properties.Settings.Default.useADF;
+                    bool pdf = Properties.Settings.Default.pdf;
                     ColourSetting colour = Properties.Settings.Default.colour;
 
                     try
@@ -370,6 +374,7 @@ namespace cz.martindobias.ScanIt
                             throw new Exception("Unsupported DPI value: " + dpi);
 
                         adf = request.Query.ContainsKey("adf") ? "1".Equals(request.Query["adf"]) : adf;
+                        pdf = request.Query.ContainsKey("pdf") ? "1".Equals(request.Query["pdf"]) : adf;
 
                         if (request.Query.ContainsKey("colour"))
                         {
@@ -400,6 +405,7 @@ namespace cz.martindobias.ScanIt
                     if (this.mainForm.scanSemaphore.WaitOne(0))
                     {
                         this.mainForm.scanData.Clear();
+                        this.mainForm.dataReady = false;
 
                         if (testing)
                         {
@@ -411,12 +417,12 @@ namespace cz.martindobias.ScanIt
                             {
                                 // left blank intentionally
                             }
+                            this.mainForm.dataReady = true;
                             this.mainForm.scanSemaphore.Release();
                         }
                         else
                         {
                             this.mainForm.scanTarget = ScanTarget.WEB;
-                            this.mainForm.dataReady = false;
                             this.mainForm.Invoke(new ScanDelegate(Scan), new object[] { source, dpi, colour, adf });
 
                             DateTime startTime = DateTime.Now;
@@ -435,35 +441,11 @@ namespace cz.martindobias.ScanIt
                             {
                                 if (!adf)
                                 {
-                                    Bitmap b = this.mainForm.scanData.First();
-                                    Rectangle r = MainForm.getRectangle(b, x, y, w, h);
-                                    if (!r.IsEmpty)
-                                    {
-                                        b = b.Clone(r, b.PixelFormat);
-                                    }
-                                    b.Save(ms, ImageFormat.Png);
+                                    ScanHandler.SaveImage(x, y, w, h, ms, this.mainForm.scanData.First(), pdf);
                                 }
                                 else
                                 {
-                                    using (ZipFile zip = new ZipFile())
-                                    {
-                                        int count = 1;
-                                        foreach (Bitmap b in this.mainForm.scanData)
-                                        {
-                                            Bitmap bt = b;
-                                            Rectangle r = MainForm.getRectangle(bt, x, y, w, h);
-                                            if (!r.IsEmpty)
-                                            {
-                                                bt = bt.Clone(r, bt.PixelFormat);
-                                            }
-
-                                            using(MemoryStream mst = new MemoryStream()) {
-                                                bt.Save(mst, ImageFormat.Png);
-                                                zip.AddEntry("" + count++ + ".png", mst.ToArray());
-                                            }
-                                        }
-                                        zip.Save(ms);
-                                    }
+                                    ScanHandler.SaveImage(x, y, w, h, ms, this.mainForm.scanData, pdf);
                                 }
 
                                 if ("base64".Equals(encode))
@@ -474,7 +456,7 @@ namespace cz.martindobias.ScanIt
                                 }
                                 else
                                 {
-                                    response.ContentType = adf ? "application/octet-stream" : (string)SubstitutingFileReader.MimeTypes[".png"];
+                                    response.ContentType = (adf || pdf) ? "application/octet-stream" : (string)SubstitutingFileReader.MimeTypes[".png"];
                                     response.Encoding = null;
                                     response.RawContent = ms.ToArray();
                                 }
@@ -498,6 +480,76 @@ namespace cz.martindobias.ScanIt
                     return true;
                 }
                 return false;
+            }
+
+            private static void SaveImage(int x, int y, int w, int h, MemoryStream ms, List<Bitmap> bs, bool pdf)
+            {
+                int count = 1;
+                if (pdf)
+                {
+                    pdfDocument doc = new pdfDocument("Images scanned", "ScanIt by Martin Dobias");
+                    foreach (Bitmap b in bs)
+                    {
+                        DrawPage(doc, count++, b);
+                    }
+                    doc.createPDF(ms);
+                }
+                else
+                {
+                    using (ZipFile zip = new ZipFile())
+                    {
+                        foreach (Bitmap b in bs)
+                        {
+                            using (MemoryStream mst = new MemoryStream())
+                            {
+                                ScanHandler.SaveImage(x, y, w, h, mst, b, false);
+                                zip.AddEntry("" + count++ + ".png", mst.ToArray());
+                            }
+                        }
+                        zip.Save(ms);
+                    }
+                }
+            }
+
+            private static void DrawPage(pdfDocument doc, int count, Bitmap b)
+            {
+                pdfPage page = doc.addPage();
+                int bw = b.Width;
+                int bh = b.Height;
+                if (bw > page.width)
+                {
+                    bh = (int)((float)bh / ((float)bw / page.width));
+                    bw = page.width;
+                }
+
+                if (bh > page.height)
+                {
+                    bw = (int)((float)bw / ((float)bh / page.height));
+                    bh = page.height;
+                }
+
+                doc.addImageReference(b, "img" + count);
+                pdfImageReference rf = doc.getImageReference("img" + count);
+                page.addImage(rf, 0, page.height - bh, bh, bw);
+            }
+
+            private static void SaveImage(int x, int y, int w, int h, MemoryStream ms, Bitmap b, bool pdf)
+            {
+                Rectangle r = MainForm.getRectangle(b, x, y, w, h);
+                if (!r.IsEmpty)
+                {
+                    b = b.Clone(r, b.PixelFormat);
+                }
+                if (pdf)
+                {
+                    pdfDocument doc = new pdfDocument("Image scanned", "ScanIt by Martin Dobias");
+                    ScanHandler.DrawPage(doc, 1, b);
+                    doc.createPDF(ms);
+                }
+                else
+                {
+                    b.Save(ms, ImageFormat.Png);
+                }
             }
 
             private static int getNumber(HttpRequest request, int x, string attribute)
@@ -703,6 +755,11 @@ namespace cz.martindobias.ScanIt
             if (this.colourRadioButton.Checked) Properties.Settings.Default.colour = ColourSetting.Colour;
             else if (this.greyscaleRadioButton.Checked) Properties.Settings.Default.colour = ColourSetting.GreyScale;
             else Properties.Settings.Default.colour = ColourSetting.BlackAndWhite;
+        }
+
+        private void pdfCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.pdf = this.pdfCheckBox.Checked;
         }
     }
 }

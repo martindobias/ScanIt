@@ -25,7 +25,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>8</ApplicationRevision>
+    <ApplicationRevision>9</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -74,6 +74,9 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\Dependencies\Json\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="sharpPDF">
+      <HintPath>..\Dependencies\sharpPDF\sharpPDF.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

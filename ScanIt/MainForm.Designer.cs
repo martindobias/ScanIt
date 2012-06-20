@@ -62,6 +62,7 @@
             this.adfCheckBox = new System.Windows.Forms.CheckBox();
             this.dpiLabel = new System.Windows.Forms.Label();
             this.dpiComboBox = new System.Windows.Forms.ComboBox();
+            this.pdfCheckBox = new System.Windows.Forms.CheckBox();
             this.statusStrip.SuspendLayout();
             this.trayContextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
@@ -349,7 +350,7 @@
             // blackAndWhiteRadioButton
             // 
             this.blackAndWhiteRadioButton.AutoSize = true;
-            this.blackAndWhiteRadioButton.Location = new System.Drawing.Point(206, 188);
+            this.blackAndWhiteRadioButton.Location = new System.Drawing.Point(206, 203);
             this.blackAndWhiteRadioButton.Name = "blackAndWhiteRadioButton";
             this.blackAndWhiteRadioButton.Size = new System.Drawing.Size(88, 17);
             this.blackAndWhiteRadioButton.TabIndex = 22;
@@ -361,7 +362,7 @@
             // greyscaleRadioButton
             // 
             this.greyscaleRadioButton.AutoSize = true;
-            this.greyscaleRadioButton.Location = new System.Drawing.Point(206, 165);
+            this.greyscaleRadioButton.Location = new System.Drawing.Point(206, 180);
             this.greyscaleRadioButton.Name = "greyscaleRadioButton";
             this.greyscaleRadioButton.Size = new System.Drawing.Size(70, 17);
             this.greyscaleRadioButton.TabIndex = 23;
@@ -373,7 +374,7 @@
             // colourRadioButton
             // 
             this.colourRadioButton.AutoSize = true;
-            this.colourRadioButton.Location = new System.Drawing.Point(206, 142);
+            this.colourRadioButton.Location = new System.Drawing.Point(206, 157);
             this.colourRadioButton.Name = "colourRadioButton";
             this.colourRadioButton.Size = new System.Drawing.Size(54, 17);
             this.colourRadioButton.TabIndex = 24;
@@ -417,11 +418,23 @@
             this.dpiComboBox.TabIndex = 30;
             this.dpiComboBox.SelectedValueChanged += new System.EventHandler(this.dpiComboBox_SelectedValueChanged);
             // 
+            // pdfCheckBox
+            // 
+            this.pdfCheckBox.AutoSize = true;
+            this.pdfCheckBox.Location = new System.Drawing.Point(206, 130);
+            this.pdfCheckBox.Name = "pdfCheckBox";
+            this.pdfCheckBox.Size = new System.Drawing.Size(76, 17);
+            this.pdfCheckBox.TabIndex = 31;
+            this.pdfCheckBox.Text = "serve PDF";
+            this.pdfCheckBox.UseVisualStyleBackColor = true;
+            this.pdfCheckBox.CheckedChanged += new System.EventHandler(this.pdfCheckBox_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(508, 285);
+            this.Controls.Add(this.pdfCheckBox);
             this.Controls.Add(this.dpiComboBox);
             this.Controls.Add(this.dpiLabel);
             this.Controls.Add(this.adfCheckBox);
@@ -504,6 +517,7 @@
         private System.Windows.Forms.CheckBox adfCheckBox;
         private System.Windows.Forms.Label dpiLabel;
         private System.Windows.Forms.ComboBox dpiComboBox;
+        private System.Windows.Forms.CheckBox pdfCheckBox;
     }
 }
 
